@@ -1,16 +1,24 @@
 This project is inspired by the `Tapable` project contributed by the `Webpack` team.
 
+# Motivation
+A plugin system requires an event bus for communication between the host and extensions.
+The standard `EventEmitter` has two main limitations:  It is not asynchronous, and it
+disregards the return value of listeners.
+
+This library solves both of these issues, and offers additional features to
+manage the topology and behavior of the event bus.
+
 # Differences From Tapable
 
 * Taps can be removed (untapped)
 * Tap callback order can be reversed
 * Only `promises` are used for async functionality
 * The `name` parameter is optional
-* There are only 2 types of hooks: SyncHook and AsyncHook.
+* There are only 2 types of hooks: SyncHook and AsyncHook
   All other types are specified using options (parallel, series, waterfall, bail, loop)
 * Options include controlling how exceptions in callbacks are handled
 * Composables are used instead of classes
-* Code generated is 1/10 to 1/7 the size for a .02% performance difference.
+* Code generated is 1/10 to 1/7 the size for a .02% performance difference
 
 # Implemented Functionality
 
