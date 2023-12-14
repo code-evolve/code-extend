@@ -1,5 +1,5 @@
 import {expect} from 'chai'
-import {idealLifecycleHooks} from '@frontend/lib/hooks/test/ideal-lifecycle-hooks'
+import {idealLifecycleHooks} from './ideal-lifecycle-hooks'
 
 export async function asyncWait(milli: number) {
   return new Promise((resolve) => {

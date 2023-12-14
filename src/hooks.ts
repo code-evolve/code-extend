@@ -122,7 +122,11 @@ export function createAsyncHook(opts?: CreateHookOptions): AsyncHook {
             handleException(onError, e)
           }
         })
-        await Promise.all(promises)
+        try {
+          await Promise.all(promises)
+        } catch (e) {
+          handleException(onError, e)
+        }
         break
       }
       case 'series': {
@@ -131,6 +135,7 @@ export function createAsyncHook(opts?: CreateHookOptions): AsyncHook {
             await info.callback.apply(undefined, generateParams(info, context, args))
           } catch (e: any) {
             handleException(onError, e)
+            return
           }
         }
         break

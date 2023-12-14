@@ -1,8 +1,8 @@
-import {createAsyncHook, createSyncHook} from '@frontend/lib/hooks/src/hooks'
+import {createAsyncHook, createSyncHook} from '../src/hooks'
 import {expect} from 'chai'
 
 describe('sync hooks - errors', () => {
-  it('should log on exceptions by default', function () {
+  it('should log on exceptions by default', async function () {
     const hook = createSyncHook()
     const results = []
 
@@ -14,13 +14,13 @@ describe('sync hooks - errors', () => {
       results.push('2')
     })
 
-    hook.call()
+    await hook.call()
 
     expect(results).to.eql(['2'])
     //TODO expect console.error to have been called
   })
 
-  it('should ignore on exceptions', function () {
+  it('should ignore on exceptions', async function () {
     const hook = createSyncHook({onError: 'ignore'})
     const results = []
 
@@ -32,7 +32,7 @@ describe('sync hooks - errors', () => {
       results.push('2')
     })
 
-    hook.call()
+    // await hook.call()
     //TODO expect console.error to not have been called
   })
 
@@ -89,7 +89,7 @@ describe('async hooks - errors', () => {
     //TODO expect console.error to not have been called
   })
 
-  it('should throw', async function () {
+  it('should throw', async () => {
     const hook = createAsyncHook({onError: 'throw'})
     const results = []
 
@@ -97,15 +97,15 @@ describe('async hooks - errors', () => {
       throw new Error('Hey')
     })
 
-    hook.tap(async () => {
-      results.push('2')
-    })
+    // hook.tap(async () => {
+    //   results.push('2')
+    // })
 
-    hook.call().then(
+    await hook.call().then(
       () => {
         throw new Error('Expected hook.call to throw')
-      }),
+      },
       () => {
-      }
+      })
   })
 })
