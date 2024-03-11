@@ -1,5 +1,5 @@
+import {expect, describe, it} from 'vitest'
 import {createAsyncHook} from '../src/hooks'
-import {expect} from 'chai'
 
 describe('async hooks', async () => {
   it('should series', async function () {

@@ -1,4 +1,4 @@
-import {expect} from 'chai'
+import {expect, describe, it} from 'vitest'
 import {idealLifecycleHooks} from './ideal-lifecycle-hooks'
 
 export async function asyncWait(milli: number) {

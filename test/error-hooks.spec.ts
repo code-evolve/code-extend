@@ -1,5 +1,5 @@
+import {expect, describe, it} from 'vitest'
 import {createAsyncHook, createSyncHook} from '../src/hooks'
-import {expect} from 'chai'
 
 describe('sync hooks - errors', () => {
   it('should log on exceptions by default', async function () {
