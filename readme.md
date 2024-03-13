@@ -1,14 +1,19 @@
-This project is inspired by the `Tapable` project contributed by the `Webpack` team.
+# Code-Extend
+This project was inspired by the `Tapable` project 
+that was contributed to the open-source community by the `Webpack` team.
+See [https://github.com/webpack/tapable](https://github.com/webpack/tapable).
+
+Although Code-Extend is not a fork of `Tapable`, it strives to maintain some API compatibility. 
 
 # Motivation
 A plugin system requires an event bus for communication between the host and extensions.
-The standard `EventEmitter` has two main limitations:  It is not asynchronous, and it
+The standard Node `EventEmitter` has a few limitations:  It is strictly synchronous, it is not typed, and it
 disregards the return value of listeners.
 
-This library solves both of these issues, and offers additional features to
+The Code-Extend library solves these issues, while also offering additional features to
 manage the topology and behavior of the event bus.
 
-# Differences From Tapable
+# Differences From `Tapable`
 
 * Taps can be removed (untapped)
 * Tap callback order can be reversed
@@ -18,23 +23,23 @@ manage the topology and behavior of the event bus.
   All other types are specified using options (parallel, series, waterfall, bail, loop)
 * Options include controlling how exceptions in callbacks are handled
 * Composables are used instead of classes
-* Code generated is 1/10 to 1/7 the size for a .02% performance difference
+* Code generated is 1/10 to 1/7 the size for a .02% performance hit
 
 # Implemented Functionality
+Other `Tapable` functionality may be included in a future release.
 
-| Feature      | Implemented |
-|--------------|-------------|
-| tap          | yes         |
-| tapPromise   | yes         |
-| tapAsync     | no          |
-| call         | yes         |
-| sync         | yes         |
-| context      | yes         |
-| Interception | no          |
-| HookMap      | no          |
-| Multihook    | no          |
+| Feature (of `Tapable`) | Implemented |
+|----------------------|-------------|
+| tap                  | yes         |
+| tapPromise           | yes         |
+| tapAsync             | no          |
+| call                 | yes         |
+| sync                 | yes         |
+| context              | yes         |
+| Interception         | no          |
+| HookMap              | no          |
+| Multihook            | no          |
 
-Other Tapable functionality may be included in a future release.
 
 # Examples
 
@@ -93,6 +98,7 @@ await asyncHook.call('3') // return value is '321'
 ```
 
 ## Untapping
+Tapped hooks return an `Untap Function`.
 
 ```ts
 const syncHook = createSyncHook()
@@ -118,9 +124,10 @@ export function createAsyncHook(opts: CreateHookOptions) {
 
 ## Refactoring
 We define typescript definitions for `SyncHook`, `AsyncHook`, and `Hook`. 
-The `Hook` interface uses union types and can be used for both.  
-Our approach is always await synchronous calls,
-giving us the flexibility to make it to asynchronous without needing to modify.
+The `Hook` interface uses union types and can be used for both `sync` and `async` hook types.  
+Our approach is  to _always await synchronous calls_,
+giving us the flexibility refactor synchronous hooks into asynchronous,
+without needing to modify the implementation.
 
 For example, instead of writing
 
@@ -132,12 +139,9 @@ myHook.call()
 ```
 We write
 ```ts
-import {Hook, createSyncHook} from './hooks'
+import {createSyncHook as createHook} from './hooks'
 
-const myHook = createSyncHook()
+const myHook = createHook()
 await myHook.call()
 ```
 This way, if we ever decide to go async, we can just leave the code as is.
-# References
-
-https://github.com/webpack/tapable
