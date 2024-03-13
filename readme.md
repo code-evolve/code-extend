@@ -22,23 +22,23 @@ manage the topology and behavior of the event bus.
 * There are only 2 types of hooks: SyncHook and AsyncHook
   All other types are specified using options (parallel, series, waterfall, bail, loop)
 * Options include controlling how exceptions in callbacks are handled
-* Composables are used instead of classes
+* Composable functions are used instead of classes
 * Code generated is 1/10 to 1/7 the size for a .02% performance hit
 
 # Implemented Functionality
 Other `Tapable` functionality may be included in a future release.
 
 | Feature (of `Tapable`) | Implemented |
-|----------------------|-------------|
-| tap                  | yes         |
-| tapPromise           | yes         |
-| tapAsync             | no          |
-| call                 | yes         |
-| sync                 | yes         |
-| context              | yes         |
-| Interception         | no          |
-| HookMap              | no          |
-| Multihook            | no          |
+|------------------------|-------------|
+| tap                    | yes         |
+| tapPromise             | yes         |
+| tapAsync               | no          |
+| call                   | yes         |
+| sync                   | yes         |
+| context                | yes         |
+| Interception           | no          |
+| HookMap                | no          |
+| Multihook              | no          |
 
 
 # Examples
@@ -98,7 +98,7 @@ await asyncHook.call('3') // return value is '321'
 ```
 
 ## Untapping
-Tapped hooks return an `Untap Function`.
+Tapped hooks return an `Untap Function`.  Removing a `tap` is called  `untapping`.
 
 ```ts
 const syncHook = createSyncHook()
