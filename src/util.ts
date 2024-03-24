@@ -19,11 +19,11 @@ export function parseParams(optsOrCallback: TapOptions | HookCallback, callback?
   }
 }
 
-function logException(e: Error) {
+function logException(e: unknown) {
   console.error('Hook exception', e)
 }
 
-export function handleException(onError: HookErrorAction, e: Error) {
+export function handleException(onError: HookErrorAction, e: unknown) {
   switch (onError) {
     case 'log':
       logException(e)
