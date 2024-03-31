@@ -1,47 +1,27 @@
 # Code-Extend
-This project was inspired by the `Tapable` project 
-that was contributed to the open-source community by the `Webpack` team.
-See [https://github.com/webpack/tapable](https://github.com/webpack/tapable).
+Code-Extend is a framework for extending your codebase to allow
+plugins, addons, and extensions.
 
-Although Code-Extend is not a fork of `Tapable`, it strives to maintain some API compatibility. 
+By using a variety of customizable hooks, you will be able
+to create a highly extensible, loosely coupled system.
 
 # Motivation
 A plugin system requires an event bus for communication between the host and extensions.
-The standard Node `EventEmitter` has a few limitations:  It is strictly synchronous, it is not typed, and it
+The standard Node `EventEmitter` has a many limitations:
+It is inherently synchronous, it is not typed, and it
 disregards the return value of listeners.
 
 The Code-Extend library solves these issues, while also offering additional features to
 manage the topology and behavior of the event bus.
 
-# Differences From `Tapable`
+# Inspiration
+This project was inspired by the `Tapable` project 
+that was contributed to the open-source community by the `Webpack` team.
+See [https://github.com/webpack/tapable](https://github.com/webpack/tapable).  The main super power of `Tapable` is its ability to create
+various types of hooks. Although Code-Extend is not a fork of `Tapable`, 
+it strives to maintain some API compatibility. 
 
-* Taps can be removed (untapped)
-* Tap callback order can be reversed
-* Only `promises` are used for async functionality
-* The `name` parameter is optional
-* There are only 2 types of hooks: SyncHook and AsyncHook
-  All other types are specified using options (parallel, series, waterfall, bail, loop)
-* Options include controlling how exceptions in callbacks are handled
-* Composable functions are used instead of classes
-* Code generated is 1/10 to 1/7 the size for a .02% performance hit
-
-# Implemented Functionality
-Other `Tapable` functionality may be included in a future release.
-
-| Feature (of `Tapable`) | Implemented |
-|------------------------|-------------|
-| tap                    | yes         |
-| tapPromise             | yes         |
-| tapAsync               | no          |
-| call                   | yes         |
-| sync                   | yes         |
-| context                | yes         |
-| Interception           | no          |
-| HookMap                | no          |
-| Multihook              | no          |
-
-
-# Examples
+# Usage And Examples
 
 Hooks are created using `createSyncHook(...)` and `createAsyncHook(...)`
 
@@ -121,6 +101,38 @@ export function createAsyncHook(opts: CreateHookOptions) {
   return createAsyncHook2(Object.assign({type: 'waterfall', reverse: true}, opts))
 }
 ```
+
+# Differences From `Tapable`
+If you are familiar with Tapable, 
+you might find this section of interest.
+
+* Taps can be removed (untapped)
+* Tap callback order can be reversed
+* Only `promises` are used for async functionality
+* The `name` parameter is optional
+* There are only 2 types of hooks: SyncHook and AsyncHook
+  All other types are specified using options (parallel, series, waterfall, bail, loop)
+* Options include controlling how exceptions in callbacks are handled
+* Composable functions are used instead of classes
+* Code generated is 1/10 to 1/7 the size for a .02% performance hit
+
+# Implemented Functionality
+Other `Tapable` functionality may be included in a future release.
+
+| Feature (of `Tapable`) | Implemented |
+|------------------------|-------------|
+| tap                    | yes         |
+| tapPromise             | yes         |
+| tapAsync               | no          |
+| call                   | yes         |
+| sync                   | yes         |
+| context                | yes         |
+| Interception           | no          |
+| HookMap                | no          |
+| Multihook              | no          |
+
+
+# More Info
 
 ## Refactoring
 We define typescript definitions for `SyncHook`, `AsyncHook`, and `Hook`. 
