@@ -2,7 +2,7 @@ import {AsyncHook, CreateHookOptions, Hook, HookCallback, HookErrorAction, HookT
 import {generateParams, handleException, HookCallbackInfo, parseParams} from './util'
 import {removeOne} from '../../../util'
 
-export function createSyncHook(opts?: CreateHookOptions): Hook {
+export function createSyncHook<PARAMS extends any[]>(opts?: CreateHookOptions): Hook<PARAMS> {
   const callbacks: HookCallbackInfo[] = []
   // WORKAROUND Should not need to ts-ignore
   // @ts-ignore
@@ -16,7 +16,7 @@ export function createSyncHook(opts?: CreateHookOptions): Hook {
     call,
   }
 
-  function tap(optsOrCallback: TapOptions | HookCallback, callback?: HookCallback) {
+  function tap(optsOrCallback: TapOptions<PARAMS> | HookCallback<PARAMS>, callback?: HookCallback<PARAMS>) {
     const info = parseParams(optsOrCallback, callback)
     callbacks.push(info)
 
@@ -25,7 +25,7 @@ export function createSyncHook(opts?: CreateHookOptions): Hook {
     }
   }
 
-  function call(...args: any[]) {
+  function call(...args: PARAMS) {
     const context = {}
     const items = opts?.reverse ? callbacks.slice().reverse() : callbacks
 
@@ -87,7 +87,7 @@ export function createSyncHook(opts?: CreateHookOptions): Hook {
   }
 }
 
-export function createAsyncHook(opts?: CreateHookOptions): AsyncHook {
+export function createAsyncHook<PARAMS extends any[]>(opts?: CreateHookOptions): AsyncHook<PARAMS> {
   const callbacks: HookCallbackInfo[] = []
   // WORKAROUND Should not need to ts-ignore
   // @ts-ignore
@@ -101,7 +101,7 @@ export function createAsyncHook(opts?: CreateHookOptions): AsyncHook {
     call,
   }
 
-  function tap(optsOrCallback: TapOptions | HookCallback, callback?: HookCallback) {
+  function tap(optsOrCallback: TapOptions<PARAMS> | HookCallback<PARAMS>, callback?: HookCallback<PARAMS>) {
     const info = parseParams(optsOrCallback, callback)
     callbacks.push(info)
     return () => {
@@ -109,7 +109,7 @@ export function createAsyncHook(opts?: CreateHookOptions): AsyncHook {
     }
   }
 
-  async function call(...args: any[]) {
+  async function call(...args: PARAMS) {
     const items = (typeof opts === 'object' && opts?.reverse) ? callbacks.slice().reverse() : callbacks
     const context = {}
 

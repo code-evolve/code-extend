@@ -1,29 +1,29 @@
-export type HookFn = (callback: HookCallback) => UnregHook
-export type HookCallback = (...params: any[]) => any | Promise<any>
+export type HookFn<PARAMS extends any[]> = (callback: HookCallback<PARAMS>) => UnregHook
+export type HookCallback<PARAMS extends any[]> = (...params: PARAMS) => any | Promise<any>
 export type UnregHook = () => void
 
-export interface Hook {
-  tap(callbackOrOpts: TapOptions | HookCallback, callback?: HookCallback): UnregHook
+export interface Hook<PARAMS extends any[]> {
+  tap(callbackOrOpts: TapOptions<PARAMS> | HookCallback<PARAMS>, callback?: HookCallback<PARAMS>): UnregHook
 
-  call(...args: any[]): any | Promise<any>
+  call(...args: PARAMS): any | Promise<any>
 }
 
-export interface SyncHook extends Hook {
-  tap(callback: (...args: any[]) => any): UnregHook
+export interface SyncHook<PARAMS extends any[]> extends Hook<PARAMS> {
+  tap(callback: (...args: PARAMS) => any): UnregHook
 
   call(...args: any[]): any
 }
 
-export interface AsyncHook extends Hook {
-  tap(optsOrCallback: TapOptions | HookCallback, callback?: HookCallback): UnregHook
+export interface AsyncHook<PARAMS extends any[]> extends Hook<PARAMS> {
+  tap(optsOrCallback: TapOptions<PARAMS> | HookCallback<PARAMS>, callback?: HookCallback<PARAMS>): UnregHook
 
-  call(...args: any[]): Promise<any>
+  call(...args: PARAMS): Promise<any>
 }
 
-export type TapOptions = {
+export type TapOptions<PARAMS extends any[]> = {
   name?: string
   context?: boolean
-  handler?: HookCallback
+  handler?: HookCallback<PARAMS>
 }
 
 export type CreateHookOptions = string[] | CreateHookOptionObj
