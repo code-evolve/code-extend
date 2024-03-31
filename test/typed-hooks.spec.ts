@@ -2,7 +2,7 @@ import {test} from 'vitest'
 import {createSyncHook} from '../src'
 
 test('typed hooks - primitive', () => {
-  const hook = createSyncHook<[string, boolean]>()
+  const hook = createSyncHook<[a:string, b:boolean]>()
   hook.tap((a, b) => {
     console.log(a, b)
   })
@@ -23,6 +23,14 @@ test('typed hooks - object', () => {
     a: 'a',
     b: true
   }, {c: 12})
+})
+
+test('typed hooks - return type', () => {
+  const hook = createSyncHook<(a:number)=>string>()
+  hook.tap((a) => {
+    console.log(a)
+  })
+  hook.call(1)
 })
 
 // test('typed hooks - implicit', () => {

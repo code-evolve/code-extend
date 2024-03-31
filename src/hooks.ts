@@ -1,8 +1,19 @@
-import {AsyncHook, CreateHookOptions, Hook, HookCallback, HookErrorAction, HookType, TapOptions} from './types'
+import {
+  AsyncHook,
+  CreateHookOptions,
+  FnInfo,
+  Hook,
+  HookCallback,
+  HookErrorAction,
+  HookType,
+  PType,
+  RType,
+  TapOptions
+} from './types'
 import {generateParams, handleException, HookCallbackInfo, parseParams} from './util'
 import {removeOne} from '../../../util'
 
-export function createSyncHook<PARAMS extends any[]>(opts?: CreateHookOptions): Hook<PARAMS> {
+export function createSyncHook<PARAMS extends FnInfo>(opts?: CreateHookOptions): Hook<PARAMS> {
   const callbacks: HookCallbackInfo[] = []
   // WORKAROUND Should not need to ts-ignore
   // @ts-ignore
@@ -25,7 +36,7 @@ export function createSyncHook<PARAMS extends any[]>(opts?: CreateHookOptions): 
     }
   }
 
-  function call(...args: PARAMS) {
+  function call(...args: PType<PARAMS>): RType<PARAMS> | undefined {
     const context = {}
     const items = opts?.reverse ? callbacks.slice().reverse() : callbacks
 
@@ -87,7 +98,7 @@ export function createSyncHook<PARAMS extends any[]>(opts?: CreateHookOptions): 
   }
 }
 
-export function createAsyncHook<PARAMS extends any[]>(opts?: CreateHookOptions): AsyncHook<PARAMS> {
+export function createAsyncHook<PARAMS extends FnInfo>(opts?: CreateHookOptions): AsyncHook<PARAMS> {
   const callbacks: HookCallbackInfo[] = []
   // WORKAROUND Should not need to ts-ignore
   // @ts-ignore
@@ -109,7 +120,7 @@ export function createAsyncHook<PARAMS extends any[]>(opts?: CreateHookOptions):
     }
   }
 
-  async function call(...args: PARAMS) {
+  async function call(...args: PType<PARAMS>): Promise<RType<PARAMS> | undefined> {
     const items = (typeof opts === 'object' && opts?.reverse) ? callbacks.slice().reverse() : callbacks
     const context = {}
 
@@ -162,7 +173,10 @@ export function createAsyncHook<PARAMS extends any[]>(opts?: CreateHookOptions):
               throw new Error('not handled')
             }
           } catch (e) {
-            handleException(onError, e)
+            // @ts-ignore
+            if (e.message !== 'not handled') {
+              handleException(onError, e)
+            }
             throw new Error('not handled')
           }
         }
@@ -171,9 +185,7 @@ export function createAsyncHook<PARAMS extends any[]>(opts?: CreateHookOptions):
           return wrappedPromise(info.callback.apply(undefined, generateParams(info, context, args)))
         })
         try {
-          // @ts-ignore
-          const result = await Promise.any(promises)
-          return result
+          return await Promise.any(promises)
         } catch (e) {
           handleException(onError, e)
           return undefined
