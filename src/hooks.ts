@@ -152,17 +152,32 @@ export function createAsyncHook(opts?: CreateHookOptions): AsyncHook {
         return value
       }
       case 'bail': {
-        for (const info of items) {
+        // Throw if returned value is undefined
+        async function wrappedPromise<T = any>(promise: Promise<T>): Promise<T> {
           try {
-            const value = await info.callback.apply(undefined, generateParams(info, context, args))
-            if (value !== undefined) {
-              return value
+            const result = await promise
+            if (result !== undefined) {
+              return result
+            } else {
+              throw new Error('not handled')
             }
-          } catch (e: any) {
+          } catch (e) {
             handleException(onError, e)
+            throw new Error('not handled')
           }
         }
-        return undefined
+
+        const promises = items.map(async info => {
+          return wrappedPromise(info.callback.apply(undefined, generateParams(info, context, args)))
+        })
+        try {
+          // @ts-ignore
+          const result = await Promise.any(promises)
+          return result
+        } catch (e) {
+          handleException(onError, e)
+          return undefined
+        }
       }
       case 'loop': {
         let loop = true
