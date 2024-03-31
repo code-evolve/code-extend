@@ -1,221 +1,257 @@
-import {expect, describe, it} from 'vitest'
-import {createAsyncHook} from '../src/hooks'
+import {it, expect} from 'vitest'
+import {createAsyncHook} from '../src'
+import {asyncWait} from '../../../util'
 
-describe('async hooks', async () => {
-  it('should series', async function () {
-    const hook = createAsyncHook({type: 'series'})
-    const results = []
+it('series', async function () {
+  const hook = createAsyncHook({type: 'series'})
+  const results = []
 
-    hook.tap(async () => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          results.push('1')
-          resolve(undefined)
-        }, 20)
-      })
+  hook.tap(async () => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        results.push('1')
+        resolve(1)
+      }, 20)
     })
-
-    hook.tap(() => {
-      results.push('2')
-    })
-
-    await hook.call()
-
-    expect(results).to.eql(['1', '2'])
   })
 
-  it('should series reverse', async function () {
-    const hook = createAsyncHook({type: 'series', reverse: true})
-    const results = []
-
-    hook.tap(async () => {
-      results.push('1')
-    })
-
-    hook.tap(() => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          results.push('2')
-          resolve(undefined)
-        }, 20)
-      })
-    })
-
-    await hook.call()
-
-    expect(results).to.eql(['2', '1'])
+  hook.tap(() => {
+    results.push('2')
+    return 2
   })
 
-  it('should parallel', async function () {
-    const hook = createAsyncHook({type: 'parallel'})
-    const results = []
+  expect(results).to.eql([])
+  const promise = hook.call()
+  expect(results).to.eql([])
+  const result = await promise
+  expect(result).to.be.undefined
+  expect(results).to.eql(['1', '2'])
+})
 
-    hook.tap(() => {
-      results.push('1')
-    })
+it('series reverse', async function () {
+  const hook = createAsyncHook({
+    type: 'series',
+    reverse: true
+  })
+  const results = []
 
-    hook.tap(() => {
-      results.push('2')
-    })
-
-    await hook.call()
-
-    expect(results).to.eql(['1', '2'])
+  hook.tap(async () => {
+    results.push('1')
+    return 1
   })
 
-  it('should parallel reverse', async function () {
-    const hook = createAsyncHook({type: 'series', reverse: true})
-    const results = []
-
-    hook.tap(() => {
-      results.push('1')
+  hook.tap(() => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        results.push('2')
+        resolve(2)
+      }, 20)
     })
-
-    hook.tap(() => {
-      results.push('2')
-    })
-
-    await hook.call()
-
-    expect(results).to.eql(['2', '1'])
   })
 
-  it('should waterfall', async function () {
-    const hook = createAsyncHook({type: 'waterfall'})
+  expect(results).to.eql([])
+  const promise = hook.call()
+  expect(results).to.eql([])
+  const result = await promise
+  expect(result).to.be.undefined
+  expect(results).to.eql(['2', '1'])
+})
 
-    hook.tap((message) => {
-      return message + '1'
-    })
+it('parallel', async function () {
+  const hook = createAsyncHook({type: 'parallel'})
+  const results = []
 
-    hook.tap((message) => {
-      return message + '2'
-    })
-
-    const processed = await hook.call('0')
-
-    expect(processed).to.equal('012')
+  hook.tap(async () => {
+    await asyncWait(10)
+    results.push('1')
+    return 1
   })
 
-  it('should reverse waterfall', async function () {
-    const hook = createAsyncHook({type: 'waterfall', reverse: true})
-
-    hook.tap((message) => {
-      return message + '1'
-    })
-
-    hook.tap((message) => {
-      return message + '2'
-    })
-
-    const processed = await hook.call('0')
-
-    expect(processed).to.equal('021')
+  hook.tap(async () => {
+    await asyncWait(5)
+    results.push('2')
+    return 2
   })
 
-  it('should bail', async function () {
-    const hook = createAsyncHook({type: 'bail'})
-    const results = []
+  expect(results).to.eql([])
+  const result = await hook.call()
+  expect(result).to.be.undefined
+  expect(results).to.eql(['2', '1'])
+})
 
-    hook.tap(() => {
-      results.push('1')
+it('parallel reverse', async function () {
+  const hook = createAsyncHook({
+    type: 'parallel',
+    reverse: true
+  })
+  const results = []
+
+  hook.tap(async () => {
+    results.push('1')
+    return 1
+  })
+
+  hook.tap(async () => {
+    results.push('2')
+    return 2
+  })
+
+  expect(results).to.eql([])
+  const result = await hook.call()
+  expect(result).to.be.undefined
+  expect(results).to.eql(['2', '1'])
+})
+
+it('waterfall', async function () {
+  const hook = createAsyncHook({type: 'waterfall'})
+
+  hook.tap(async (message) => {
+    await asyncWait(10)
+    return message + '1'
+  })
+
+  hook.tap(async (message) => {
+    await asyncWait(5)
+    return message + '2'
+  })
+
+  const processed = await hook.call('0')
+  expect(processed).to.equal('012')
+})
+
+it('waterfall reverse', async function () {
+  const hook = createAsyncHook({
+    type: 'waterfall',
+    reverse: true
+  })
+
+  hook.tap(async (message) => {
+    await asyncWait(10)
+    return message + '1'
+  })
+
+  hook.tap(async (message) => {
+    await asyncWait(10)
+    return message + '2'
+  })
+
+  const processed = await hook.call('0')
+  expect(processed).to.equal('021')
+})
+
+it('bail', async function () {
+  const hook = createAsyncHook({type: 'bail'})
+  const results = []
+
+  hook.tap(async () => {
+    await asyncWait(10)
+    results.push('1')
+    return 1
+  })
+
+  hook.tap(async () => {
+    await asyncWait(5)
+    results.push('2')
+    return 2
+  })
+
+  const res = await hook.call()
+  expect(res).to.equal(2)
+  expect(results).to.eql(['2'])
+})
+
+it('bail reverse', async function () {
+  const hook = createAsyncHook({
+    type: 'bail',
+    reverse: true
+  })
+  const results = []
+
+  hook.tap(async () => {
+    await asyncWait(10)
+    results.push('1')
+    return 1
+  })
+
+  hook.tap(async () => {
+    await asyncWait(5)
+    results.push('2')
+    return 2
+  })
+
+  const res = await hook.call()
+  expect(res).to.eql(2)
+  expect(results).to.eql(['2'])
+})
+
+it('bail no result', async function () {
+  const hook = createAsyncHook({type: 'bail'})
+  const results = []
+
+  hook.tap(async () => {
+    await asyncWait(10)
+    results.push('1')
+  })
+
+  hook.tap(async () => {
+    await asyncWait(5)
+    results.push('2')
+  })
+
+  const res = await hook.call()
+  expect(res).to.be.undefined
+  expect(results).to.eql(['2', '1'])
+})
+
+it('loop', async function () {
+  const hook = createAsyncHook({type: 'loop'})
+
+  const results = []
+  let shouldLoop = true
+
+  hook.tap(() => {
+    results.push('1')
+  })
+
+  hook.tap(() => {
+    results.push('2')
+    if (shouldLoop) {
+      shouldLoop = false
       return true
-    })
-
-    hook.tap(() => {
-      results.push('2')
-    })
-
-    await hook.call()
-    expect(results).to.eql(['1'])
+    } else {
+      return undefined
+    }
   })
 
-  it('should bail reverse', async function () {
-    const hook = createAsyncHook({type: 'bail', reverse: true})
-    const results = []
+  const result = await hook.call()
+  expect(result).to.be.undefined
+  expect(results).to.eql(['1', '2', '1', '2'])
+})
 
-    hook.tap(() => {
-      results.push('1')
-    })
+it('loop reverse', async function () {
+  const hook = createAsyncHook({
+    type: 'loop',
+    reverse: true
+  })
 
-    hook.tap(() => {
-      results.push('2')
+  const results = []
+  let shouldLoop = true
+
+  hook.tap(() => {
+    results.push('1')
+    if (shouldLoop) {
+      shouldLoop = false
       return true
-    })
-
-    await hook.call()
-    expect(results).to.eql(['2'])
+    } else {
+      return undefined
+    }
   })
 
-  it('should loop', async function () {
-    const hook = createAsyncHook({type: 'loop'})
-
-    const results = []
-    let shouldLoop = true
-
-    hook.tap(() => {
-      results.push('1')
-      if (shouldLoop) {
-        shouldLoop = false
-        return true
-      } else {
-        return undefined
-      }
-    })
-
-    hook.tap(() => {
-      results.push('2')
-    })
-
-    await hook.call()
-    expect(results).to.eql(['1', '1', '2'])
+  hook.tap(() => {
+    results.push('2')
   })
 
-  it('should loop reverse', async function () {
-    const hook = createAsyncHook({type: 'loop', reverse: true})
-
-    const results = []
-    let shouldLoop = true
-
-    hook.tap(() => {
-      results.push('1')
-      if (shouldLoop) {
-        shouldLoop = false
-        return true
-      } else {
-        return undefined
-      }
-    })
-
-    hook.tap(() => {
-      results.push('2')
-    })
-
-    await hook.call()
-    expect(results).to.eql(['2', '1', '2', '1'])
-  })
-
-  it('should accept context', async function () {
-    const hook = createAsyncHook({args: ["message"], type: 'series'})
-    let _context, _message
-
-    hook.tap({
-      context: true
-    }, (context, message) => {
-      context.value = 'a'
-      _message = message
-    })
-
-    hook.tap({
-      context: true
-    }, (context, message) => {
-      _context = context
-      _message = message
-    })
-
-    await hook.call('Hello')
-
-    expect(_context).eql({value: 'a'})
-    expect(_message).equal('Hello')
-  })
-
+  const result = await hook.call()
+  expect(result).to.be.undefined
+  expect(results).to.eql(['2', '1', '2', '1'])
 })

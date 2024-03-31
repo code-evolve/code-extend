@@ -1,4 +1,4 @@
-import {createAsyncHook} from '../src/hooks'
+import {createAsyncHook} from '../src'
 
 export const idealLifecycleHooks = {
   meta: {
