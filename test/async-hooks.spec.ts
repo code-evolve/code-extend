@@ -1,9 +1,11 @@
+// noinspection BadExpressionStatementJS
+
 import {it, expect} from 'vitest'
 import {createAsyncHook} from '../src'
 import {asyncWait} from '../../../util'
 
 it('series', async function () {
-  const hook = createAsyncHook({type: 'series'})
+  const hook = createAsyncHook<() => number, void>({type: 'series'})
   const results = []
 
   hook.tap(async () => {
@@ -29,7 +31,7 @@ it('series', async function () {
 })
 
 it('series reverse', async function () {
-  const hook = createAsyncHook({
+  const hook = createAsyncHook<() => number, void>({
     type: 'series',
     reverse: true
   })
@@ -58,7 +60,7 @@ it('series reverse', async function () {
 })
 
 it('parallel', async function () {
-  const hook = createAsyncHook({type: 'parallel'})
+  const hook = createAsyncHook<() => number, void>({type: 'parallel'})
   const results = []
 
   hook.tap(async () => {
@@ -80,7 +82,7 @@ it('parallel', async function () {
 })
 
 it('parallel reverse', async function () {
-  const hook = createAsyncHook({
+  const hook = createAsyncHook<() => number, void>({
     type: 'parallel',
     reverse: true
   })
@@ -103,7 +105,7 @@ it('parallel reverse', async function () {
 })
 
 it('waterfall', async function () {
-  const hook = createAsyncHook({type: 'waterfall'})
+  const hook = createAsyncHook<(a: string) => string, void>({type: 'waterfall'})
 
   hook.tap(async (message) => {
     await asyncWait(10)
@@ -120,7 +122,7 @@ it('waterfall', async function () {
 })
 
 it('waterfall reverse', async function () {
-  const hook = createAsyncHook({
+  const hook = createAsyncHook<(a: string) => string, void>({
     type: 'waterfall',
     reverse: true
   })
@@ -140,7 +142,7 @@ it('waterfall reverse', async function () {
 })
 
 it('bail', async function () {
-  const hook = createAsyncHook({type: 'bail'})
+  const hook = createAsyncHook<() => number, void>({type: 'bail'})
   const results = []
 
   hook.tap(async () => {
@@ -161,7 +163,7 @@ it('bail', async function () {
 })
 
 it('bail reverse', async function () {
-  const hook = createAsyncHook({
+  const hook = createAsyncHook<() => number, void>({
     type: 'bail',
     reverse: true
   })
@@ -185,7 +187,7 @@ it('bail reverse', async function () {
 })
 
 it('bail no result', async function () {
-  const hook = createAsyncHook({type: 'bail'})
+  const hook = createAsyncHook<() => void, void>({type: 'bail'})
   const results = []
 
   hook.tap(async () => {
@@ -204,8 +206,7 @@ it('bail no result', async function () {
 })
 
 it('loop', async function () {
-  const hook = createAsyncHook({type: 'loop'})
-
+  const hook = createAsyncHook<() => boolean | void, void>({type: 'loop'})
   const results = []
   let shouldLoop = true
 
@@ -229,7 +230,7 @@ it('loop', async function () {
 })
 
 it('loop reverse', async function () {
-  const hook = createAsyncHook({
+  const hook = createAsyncHook<() => boolean | void, void>({
     type: 'loop',
     reverse: true
   })

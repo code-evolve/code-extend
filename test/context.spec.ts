@@ -3,7 +3,9 @@ import {createAsyncHook, createSyncHook} from '../src'
 import {asyncWait} from '../../../util'
 
 it('accept context - async', async function () {
-  const hook = createAsyncHook({
+  const hook = createAsyncHook<[message: string], {
+    value: string
+  }>({
     args: ["message"],
     type: 'series'
   })
@@ -32,7 +34,9 @@ it('accept context - async', async function () {
 })
 
 it('accept context - sync', function () {
-  const hook = createSyncHook(["message"])
+  const hook = createSyncHook<[message: string], {
+    value: string
+  }>()
   let _context, _message
 
   hook.tap({
@@ -53,4 +57,48 @@ it('accept context - sync', function () {
 
   expect(_context).eql({value: 'a'})
   expect(_message).equal('Hello')
+})
+
+it('provide context - sync', function () {
+  const hook = createSyncHook<[message: string], {
+    value: string
+  }>()
+
+  const results = []
+  hook.tap({
+    context: true
+  }, (context, message) => {
+    results.push(context, message)
+  })
+
+  hook.call2({
+    context: {value: 'a'},
+    args: ['Hello']
+  })
+  expect(results).to.eql([
+    {value: 'a'},
+    'Hello'
+  ])
+})
+
+it('provide context - async', async function () {
+  const hook = createAsyncHook<[message: string], {
+    value: string
+  }>()
+
+  const results = []
+  hook.tap({
+    context: true
+  }, (context, message) => {
+    results.push(context, message)
+  })
+
+  await hook.call2({
+    context: {value: 'a'},
+    args: ['Hello']
+  })
+  expect(results).to.eql([
+    {value: 'a'},
+    'Hello'
+  ])
 })

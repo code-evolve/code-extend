@@ -1,8 +1,10 @@
+// noinspection BadExpressionStatementJS
+
 import {expect, it} from 'vitest'
 import {createSyncHook} from '../src'
 
 it('series', function () {
-  const hook = createSyncHook({type: 'series'})
+  const hook = createSyncHook<[]>({type: 'series'})
   const results = []
 
   hook.tap(() => {
@@ -19,7 +21,7 @@ it('series', function () {
 })
 
 it('series reverse', function () {
-  const hook = createSyncHook({
+  const hook = createSyncHook<() => void>({
     type: 'series',
     reverse: true
   })
@@ -33,16 +35,16 @@ it('series reverse', function () {
     results.push('2')
   })
 
+  // noinspection JSVoidFunctionReturnValueUsed
   const result = hook.call()
   expect(result).to.be.undefined
   expect(results).to.eql(['2', '1'])
 })
 
 it('waterfall', function () {
-  const hook = createSyncHook({type: 'waterfall'})
+  const hook = createSyncHook<(a: string) => string>({type: 'waterfall'})
 
   hook.tap(message => message + '1')
-
   hook.tap(message => message + '2')
 
   const processed = hook.call('0')
@@ -56,7 +58,6 @@ it('waterfall reverse', function () {
   })
 
   hook.tap(message => message + '1')
-
   hook.tap(message => message + '2')
 
   const processed = hook.call('0')
@@ -64,7 +65,7 @@ it('waterfall reverse', function () {
 })
 
 it('bail', function () {
-  const hook = createSyncHook({type: 'bail'})
+  const hook = createSyncHook<() => boolean | void>({type: 'bail'})
   const results = []
 
   hook.tap(() => {
@@ -82,7 +83,7 @@ it('bail', function () {
 })
 
 it('bail reverse', function () {
-  const hook = createSyncHook({
+  const hook = createSyncHook<() => true | void, void>({
     type: 'bail',
     reverse: true
   })
@@ -103,7 +104,7 @@ it('bail reverse', function () {
 })
 
 it('loop', function () {
-  const hook = createSyncHook({type: 'loop'})
+  const hook = createSyncHook<() => boolean | void>({type: 'loop'})
   const results = []
   let shouldLoop = true
 
@@ -126,8 +127,8 @@ it('loop', function () {
   expect(results).to.eql(['1', '1', '2'])
 })
 
-it('should loop reverse', function () {
-  const hook = createSyncHook({
+it('loop reverse', function () {
+  const hook = createSyncHook<() => boolean | void>({
     type: 'loop',
     reverse: true
   })

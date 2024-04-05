@@ -1,10 +1,11 @@
+// noinspection JSUnusedLocalSymbols
+
 import {test} from 'vitest'
-import {createSyncHook} from '../src'
+import {createAsyncHook, createSyncHook} from '../src'
 
 test('typed hooks - primitive', () => {
-  const hook = createSyncHook<[a:string, b:boolean]>()
+  const hook = createSyncHook<[string, b: boolean]>()
   hook.tap((a, b) => {
-    console.log(a, b)
   })
   hook.call('ok', true)
 })
@@ -17,7 +18,6 @@ test('typed hooks - object', () => {
     c: number
   }]>()
   hook.tap((a, b) => {
-    console.log(a, b)
   })
   hook.call({
     a: 'a',
@@ -26,28 +26,43 @@ test('typed hooks - object', () => {
 })
 
 test('typed hooks - return type', () => {
-  const hook = createSyncHook<(a:number)=>string>()
+  const hook = createSyncHook<(a: number) => string | void>()
   hook.tap((a) => {
-    console.log(a)
   })
   hook.call(1)
 })
 
-// test('typed hooks - implicit', () => {
-//   const hook = createSyncHook<[string, number]>(['a', 'b'])
-//   hook.tap((a, b) => {
-//     console.log(a, b)
-//   })
-//   hook.call('ok', 12)
-// })
-//
-// function foo<A extends Record<string, any>>(){
-//   return {
-//     a(...args: Array<[keyof A]>){
-//       console.log(args)
-//     }
-//   }
-// }
-//
-// let f = foo<{a:string, b:number}>()
-// f.a
+test('typed hooks - context', () => {
+  const hook = createSyncHook<[number], {
+    value: string
+  }>()
+
+  // a:number
+  hook.tap((a) => {
+  })
+  // a:{value: string}, b: number
+  hook.tap({context: true}, (a, b) => {
+  })
+  // a:number
+  hook.tap({context: false}, (a) => {
+  })
+})
+
+test('typed hooks - async - context', () => {
+  const hook = createAsyncHook<[number], {
+    value: string
+  }>()
+
+  // a:number
+  hook.tap((a) => {
+  })
+  // a:{value: string}, b: number
+  hook.tap({context: true}, (a, b) => {
+  })
+  // a:{value: string}, b: number
+  hook.tapAsync({context: true}, (a, b) => {
+  })
+  // a:number
+  hook.tap({context: false}, (a) => {
+  })
+})

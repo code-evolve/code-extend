@@ -1,10 +1,15 @@
-import {expect, describe, it} from 'vitest'
+import {expect, describe, it, vi, afterEach} from 'vitest'
 import {createAsyncHook, createSyncHook} from '../src'
 
+afterEach(() => {
+  vi.clearAllMocks()
+})
+
 describe('sync hooks - errors', () => {
-  it('should log on exceptions by default', async function () {
+  it('should log on exception by default', async function () {
     const hook = createSyncHook()
     const results = []
+    const spyLog = vi.spyOn(console, 'error')
 
     hook.tap(() => {
       throw new Error('Hey')
@@ -15,14 +20,14 @@ describe('sync hooks - errors', () => {
     })
 
     await hook.call()
-
     expect(results).to.eql(['2'])
-    //TODO expect console.error to have been called
+    expect(spyLog).toBeCalledTimes(1)
   })
 
-  it('should ignore on exceptions', async function () {
+  it('should ignore on exception', async function () {
     const hook = createSyncHook({onError: 'ignore'})
     const results = []
+    const spyLog = vi.spyOn(console, 'error')
 
     hook.tap(() => {
       throw new Error('Hey')
@@ -32,11 +37,11 @@ describe('sync hooks - errors', () => {
       results.push('2')
     })
 
-    // await hook.call()
-    //TODO expect console.error to not have been called
+    await hook.call()
+    expect(spyLog).toBeCalledTimes(0)
   })
 
-  it('should throw on exceptions', function () {
+  it('should throw on exception', function () {
     const hook = createSyncHook({onError: 'throw'})
     const results = []
 
@@ -53,9 +58,10 @@ describe('sync hooks - errors', () => {
 })
 
 describe('async hooks - errors', () => {
-  it('should log by default', async function () {
+  it('should log on exception by default', async function () {
     const hook = createAsyncHook()
     const results = []
+    const spyLog = vi.spyOn(console, 'error')
 
     hook.tap(async () => {
       throw new Error('Hey')
@@ -68,12 +74,13 @@ describe('async hooks - errors', () => {
     await hook.call()
 
     expect(results).to.eql(['2'])
-    //TODO expect console.error to have been called
+    expect(spyLog).toBeCalledTimes(1)
   })
 
-  it('should ignore', async function () {
+  it('should ignore on exception', async function () {
     const hook = createAsyncHook({onError: 'ignore'})
     const results = []
+    const spyLog = vi.spyOn(console, 'error')
 
     hook.tap(async () => {
       throw new Error('Hey')
@@ -86,10 +93,10 @@ describe('async hooks - errors', () => {
     await hook.call()
 
     expect(results).to.eql(['2'])
-    //TODO expect console.error to not have been called
+    expect(spyLog).toBeCalledTimes(0)
   })
 
-  it('should throw', async () => {
+  it('should throw on exception', async () => {
     const hook = createAsyncHook({onError: 'throw'})
     const results = []
 
@@ -97,9 +104,9 @@ describe('async hooks - errors', () => {
       throw new Error('Hey')
     })
 
-    // hook.tap(async () => {
-    //   results.push('2')
-    // })
+    hook.tap(async () => {
+      results.push('2')
+    })
 
     await hook.call().then(
       () => {
