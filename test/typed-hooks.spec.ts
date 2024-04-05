@@ -66,3 +66,14 @@ test('typed hooks - async - context', () => {
   hook.tap({context: false}, (a) => {
   })
 })
+
+test('typed hooks - async - data', () => {
+  const hook = createAsyncHook<[], void, {
+    value: string
+  }>()
+
+  // a:number
+  hook.tap({data: {value: 'x'}}, () => {
+  })
+  hook.call2({filter: data => true})
+})

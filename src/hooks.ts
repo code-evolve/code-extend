@@ -43,7 +43,7 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
   }
 
   function call2(callOpts: Call2Opts<PARAMS, CONTEXT>): RType<PARAMS> | undefined {
-    const args = callOpts.args
+    const args = callOpts.args ?? {} as CallType<PARAMS>
     const context = callOpts.context ?? {} as CONTEXT
     const {filter} = callOpts
 
@@ -166,7 +166,7 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
   }
 
   async function call2(callOpts: Call2Opts<PARAMS, CONTEXT>): Promise<RType<PARAMS> | undefined> {
-    const args = callOpts.args ?? [] as CallType<PARAMS>
+    const args = callOpts.args ?? [] as unknown as CallType<PARAMS>
     const context = callOpts.context ?? {} as CONTEXT
     const {filter} = callOpts
 

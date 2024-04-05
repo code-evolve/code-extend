@@ -31,16 +31,16 @@ export type HookFn<PARAMS extends FnInfo = any[]> = (callback: HookCallback<PARA
 
 export type HookCallback<PARAMS extends FnInfo = any[], CONTEXT = any, TAPOPS extends {
   context?: boolean
-  data?: any
+  data?: TAPOPS
 } = {}> =
     TAPOPS extends {
           context: true
         } ? (...params: PType<PARAMS, CONTEXT>) => RType<PARAMS> | Promise<RType<PARAMS>>
-        : (...params: PType<PARAMS>) => RType<PARAMS> | Promise<RType<PARAMS>>
+        : (...params: PType<PARAMS, void>) => RType<PARAMS> | Promise<RType<PARAMS>>
 
 export type HookCallbackAsync<PARAMS extends FnInfo = any[], CONTEXT = any, TAPOPS extends {
   context?: boolean
-  data?: any
+  data?: TAPOPS
 } = {}> =
     TAPOPS extends {
           context: true
