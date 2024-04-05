@@ -40,30 +40,30 @@ export function handleException(onError: HookErrorAction, e: unknown) {
   }
 }
 
-export type HookCallbackInfoTrue<PARAMS extends FnInfo = any[], CONTEXT = any> = {
+export type HookCallbackInfoTrue<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any> = {
   callback: HookCallback<PARAMS, CONTEXT, {
     context: true
   }>
   useContext: true
-  data: any
+  data: TAPDATA
 }
 
-export type HookCallbackInfoFalse<PARAMS extends FnInfo = any[], CONTEXT = any> = {
+export type HookCallbackInfoFalse<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any> = {
   callback: HookCallback<PARAMS, CONTEXT, {
     context: false
   }>
   useContext: false
-  data: any
+  data: TAPDATA
 }
 
-export type HookCallbackInfoVoid<PARAMS extends FnInfo = any[]> = {
+export type HookCallbackInfoVoid<PARAMS extends FnInfo = any[], TAPDATA = any> = {
   callback: HookCallback<PARAMS, void>
   useContext: unknown
-  data: any
+  data: TAPDATA
 }
 
-export type HookCallbackInfo<PARAMS extends FnInfo = any[], CONTEXT = any> =
-  HookCallbackInfoTrue<PARAMS, CONTEXT> | HookCallbackInfoFalse<PARAMS, CONTEXT> | HookCallbackInfoVoid<PARAMS>
+export type HookCallbackInfo<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any> =
+  HookCallbackInfoTrue<PARAMS, CONTEXT, TAPDATA> | HookCallbackInfoFalse<PARAMS, CONTEXT, TAPDATA> | HookCallbackInfoVoid<PARAMS, TAPDATA>
 
 /**
  * Prepends a context object if the tap client requests it.

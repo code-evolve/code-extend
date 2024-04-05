@@ -13,8 +13,8 @@ import {
 import {generateParams, handleException, HookCallbackInfo, parseParams} from './util'
 import {removeOne} from '../../../util'
 
-export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void>(opts?: CreateHookOptions): SyncHook<PARAMS, CONTEXT> {
-  const callbacks: HookCallbackInfo<any, CONTEXT>[] = []
+export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = any>(opts?: CreateHookOptions): SyncHook<PARAMS, CONTEXT, TAPDATA> {
+  const callbacks: HookCallbackInfo<any, CONTEXT, TAPDATA>[] = []
   // WORKAROUND Should not need to ts-ignore
   // @ts-ignore
   const onError: HookErrorAction = typeof opts === 'string' ? 'log' : opts?.onError ?? 'log'
@@ -111,8 +111,8 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void>(opts?: Cre
 
 }
 
-export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any>(opts?: CreateHookOptions): AsyncHook<PARAMS, CONTEXT> {
-  const callbacks: HookCallbackInfo[] = []
+export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = any>(opts?: CreateHookOptions): AsyncHook<PARAMS, CONTEXT, TAPDATA> {
+  const callbacks: HookCallbackInfo<any, CONTEXT, TAPDATA>[] = []
   const onError: HookErrorAction = Array.isArray(opts) ? 'log' : opts?.onError ?? 'log'
   const hookType: HookType = Array.isArray(opts) ? 'parallel' : opts?.type ?? 'parallel'
 

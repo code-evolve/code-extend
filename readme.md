@@ -48,9 +48,7 @@ asyncHook.tap(async message => console.log('The hook was called:' + message))
 await asyncHook.call('Hello')
 ```
 
-## Sync hooks
-
-### With typed arguments
+## With typed arguments
 
 No arguments
 ```ts
@@ -75,7 +73,7 @@ syncHook.call('Hello')
 
 Two named arguments
 ```ts
-const syncHook = createSyncHook<[string,number]>()
+const syncHook = createSyncHook<[name:string, age:number]>()
 syncHook.tap((name, age) => console.log('The hook was called: ' + message + ' ' + age))
 syncHook.call('Woolly', 5)
 ```
@@ -86,8 +84,9 @@ const syncHook = createSyncHook<(message:string)=>void>()
 syncHook.tap(message => console.log('The hook was called: ' + message))
 syncHook.call('Hello')
 ```
+_note: Hook return types are only applicable to waterfall and bail hooks._
 
-### With untyped, named arguments (AKA the Tapable style)
+## With untyped, named arguments (AKA the Tapable style)
 
 ```ts
 const syncHook = createSyncHook(['message'])
@@ -159,13 +158,18 @@ asyncHook.tap(packet => packet + '2')
 await asyncHook.call('3') // return value is '321'
 ```
 
-## Call Filtering
-Hooks can be filtered when called.  The caller can inspect data that the source
-provided when the hook was tapped.
+## Call filtering
+Hooks can be filtered when called.  The caller can inspect tap data that
+was provided when the hook was tapped.
+
+Tap data is typed using the third parameter (TAPDATA) of createHook.
+```ts
+createSyncHook<PARAMS, CONTENT, TAPDATA>()
+```
 
 ```ts
 test('Call filtering', () => {
-  const syncHook = createSyncHook()
+  const syncHook = createSyncHook<[string | number], void, string>()
   syncHook.tap({data: 'string'}, (message) => console.log('withString', message))
   syncHook.tap({data: 'number'}, (message) => console.log('withNumber', message))
   syncHook.call2({
@@ -181,8 +185,9 @@ test('Call filtering', () => {
 
 ## Providing a context
 
-The default `hook.call` method will create an empty context
-and provide it to the first hook. Use the `hook.call2` method to provide your own context.
+The default `hook.call` method will create an empty object
+as the context and provide it to the first hook. 
+Use the `hook.call2` method to provide your own context.
 ```ts
 import {createSyncHook} from './hooks'
 

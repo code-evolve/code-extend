@@ -33,7 +33,7 @@ test('Async hook with options', async () => {
 })
 
 test('Call filtering', () => {
-  const syncHook = createSyncHook()
+  const syncHook = createSyncHook<[string | number], void, string>()
   syncHook.tap({data: 'string'}, (message) => console.log('withString', message))
   syncHook.tap({data: 'number'}, (message) => console.log('withNumber', message))
   syncHook.call2({

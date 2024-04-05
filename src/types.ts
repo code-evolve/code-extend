@@ -15,17 +15,17 @@
 export type FnInfo = any[] | ((...args: any[]) => any)
 
 export type PType<T extends FnInfo, CONTEXT = void> =
-  CONTEXT extends void
-    ? T extends (...args: any[]) => any ? Parameters<T> : T
-    // @ts-ignore
-    : T extends (...args: any[]) => any ? [CONTEXT, ...Parameters<T>] : [CONTEXT, ...T]
+    CONTEXT extends void
+        ? T extends (...args: any[]) => any ? Parameters<T> : T
+        // @ts-ignore
+        : T extends (...args: any[]) => any ? [CONTEXT, ...Parameters<T>] : [CONTEXT, ...T]
 // : T extends (...args: any[]) => any ? [CONTEXT, ...Parameters<T>] : [CONTEXT, ...any[]]
 
 export type CallType<T extends FnInfo> =
-  T extends (...args: any[]) => any ? Parameters<T> : T
+    T extends (...args: any[]) => any ? Parameters<T> : T
 
 export type RType<T extends FnInfo> =
-  T extends (...args: any[]) => any ? ReturnType<T> : T
+    T extends (...args: any[]) => any ? ReturnType<T> : any
 
 export type HookFn<PARAMS extends FnInfo = any[]> = (callback: HookCallback<PARAMS>) => UntapHook
 
@@ -33,44 +33,44 @@ export type HookCallback<PARAMS extends FnInfo = any[], CONTEXT = any, TAPOPS ex
   context?: boolean
   data?: any
 } = {}> =
-  TAPOPS extends {
-      context: true
-    } ? (...params: PType<PARAMS, CONTEXT>) => RType<PARAMS> | Promise<RType<PARAMS>>
-    : (...params: PType<PARAMS>) => RType<PARAMS> | Promise<RType<PARAMS>>
+    TAPOPS extends {
+          context: true
+        } ? (...params: PType<PARAMS, CONTEXT>) => RType<PARAMS> | Promise<RType<PARAMS>>
+        : (...params: PType<PARAMS>) => RType<PARAMS> | Promise<RType<PARAMS>>
 
 export type HookCallbackAsync<PARAMS extends FnInfo = any[], CONTEXT = any, TAPOPS extends {
   context?: boolean
   data?: any
 } = {}> =
-  TAPOPS extends {
-      context: true
-    } ? (...params: [c: CONTEXT, ...CallType<PARAMS>, done: (arg0: RType<PARAMS>) => void, err: (arg0: unknown) => void]) => void
-    : (...params: [...CallType<PARAMS>, done: (arg0: RType<PARAMS>) => void, err: (arg0: unknown) => void]) => void
+    TAPOPS extends {
+          context: true
+        } ? (...params: [c: CONTEXT, ...CallType<PARAMS>, done: (arg0: RType<PARAMS>) => void, err: (arg0: unknown) => void]) => void
+        : (...params: [...CallType<PARAMS>, done: (arg0: RType<PARAMS>) => void, err: (arg0: unknown) => void]) => void
 
 export type UntapHook = () => void
 
-export interface Hook<PARAMS extends FnInfo = any[], CONTEXT = any> {
+export interface Hook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any> {
   call(...args: CallType<PARAMS>): RType<PARAMS> | undefined | Promise<RType<PARAMS> | undefined>
 
-  call2(opts: Call2Opts<PARAMS, CONTEXT>): RType<PARAMS> | undefined | Promise<RType<PARAMS> | undefined>
+  call2(opts: Call2Opts<PARAMS, CONTEXT, TAPDATA>): RType<PARAMS> | undefined | Promise<RType<PARAMS> | undefined>
 
   tap<TAPOPS extends TapOptions<PARAMS, CONTEXT>>
   (callbackOrOpts: TAPOPS | HookCallback<PARAMS, void>, callback?: HookCallback<PARAMS, CONTEXT, TAPOPS>): UntapHook
 }
 
-export interface SyncHook<PARAMS extends FnInfo = any[], CONTEXT = any> extends Hook<PARAMS, CONTEXT> {
+export interface SyncHook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any> extends Hook<PARAMS, CONTEXT> {
   tap<TAPOPS extends TapOptions<PARAMS, CONTEXT>>
   (callbackOrOpts: TAPOPS | HookCallback<PARAMS, void>, callback?: HookCallback<PARAMS, CONTEXT, TAPOPS>): UntapHook
 
   call(...args: CallType<PARAMS>): RType<PARAMS> | undefined
 
-  call2(opts: Call2Opts<PARAMS, CONTEXT>): RType<PARAMS> | undefined
+  call2(opts: Call2Opts<PARAMS, CONTEXT, TAPDATA>): RType<PARAMS> | undefined
 }
 
-export interface AsyncHook<PARAMS extends FnInfo, CONTEXT = any> extends Hook<PARAMS, CONTEXT> {
+export interface AsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = any> extends Hook<PARAMS, CONTEXT> {
   call(...args: CallType<PARAMS>): Promise<RType<PARAMS> | undefined>
 
-  call2(opts: Call2Opts<PARAMS, CONTEXT>): Promise<RType<PARAMS> | undefined>
+  call2(opts: Call2Opts<PARAMS, CONTEXT, TAPDATA>): Promise<RType<PARAMS> | undefined>
 
   // Same as AsyncHook.tapPromise
   tap<TAPOPS extends TapOptions<PARAMS, CONTEXT>>
@@ -83,10 +83,10 @@ export interface AsyncHook<PARAMS extends FnInfo, CONTEXT = any> extends Hook<PA
   (optsOrCallback: TAPOPS | HookCallbackAsync<PARAMS, void>, callback?: HookCallbackAsync<PARAMS, CONTEXT, TAPOPS>): UntapHook
 }
 
-export type Call2Opts<PARAMS extends FnInfo = any[], CONTEXT = any> = {
+export type Call2Opts<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any> = {
   args?: CallType<PARAMS>
   context?: CONTEXT
-  filter?: (predicate: any) => boolean
+  filter?: (data: TAPDATA) => boolean
 }
 
 export type TapOptions<PARAMS extends FnInfo = any[], CONTEXT = any> = {
