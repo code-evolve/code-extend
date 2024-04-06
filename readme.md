@@ -3,10 +3,10 @@ Code-Extend is a framework for enabling your codebase to integrate
 plugins, addons, and extensions.
 
 By using a variety of customizable hook topologies,
-your codebase will become a highly extensible, loosely coupled system.
+your architecture will become highly extensible and loosely coupled.
 
-Code-Extend hooks leverage Typescript, giving your hooks
-compile-time type checking and IDE code completion.
+Code-Extend leverage Typescript, giving your hooks
+compile-time type checking and automatic code completion.
 
 # Motivation
 A plugin system requires an event bus for communication between the host and extensions.
@@ -28,10 +28,11 @@ it strives to maintain some API compatibility.
 * Typesafe hooks
 * Custom error handling
 * Call filtering
+* Synchronous and asynchronous
 * Variety of hook topologies
 * Fully tested
-* Small footprint
-* Fast
+* Lightning fast
+* Tiny footprint
 
 # Usage
 
@@ -48,7 +49,7 @@ asyncHook.tap(async message => console.log('The hook was called:' + message))
 await asyncHook.call('Hello')
 ```
 
-## With typed arguments
+## Typed arguments
 
 No arguments
 ```ts
@@ -86,7 +87,7 @@ syncHook.call('Hello')
 ```
 _note: Hook return types are only applicable to waterfall and bail hooks._
 
-## With untyped, named arguments (AKA the Tapable style)
+## Untyped, named arguments (AKA the Tapable style)
 
 ```ts
 const syncHook = createSyncHook(['message'])
@@ -94,7 +95,7 @@ syncHook.tap(message => console.log('The hook was called: ' + message))
 syncHook.call('Hello')
 ```
 
-## With error handling
+## Error handling
 
 ```ts
 const syncHook = createSyncHook<[message: string]>({onError: 'log'})
@@ -142,7 +143,7 @@ asyncHook.tapAsync((message, done, err) => {
 await asyncHook.call('Hello') // All taps called in parallel by default
 ```
 
-### With options
+### Hook options
 
 ```ts
   const asyncHook = createAsyncHook<(string) => string>({
@@ -213,6 +214,38 @@ untap2()
 syncHook.call()
 ```
 
+## Typing `hook.call` and `hook.call2`
+There is currently an issue with Typescript that
+prevents Typescript from inferring the hook type
+unless you provide all or no template parameters.
+This means you need to be redundant if you want your
+waterfall hook or bail hook to be locked in.
+
+Not a big deal, but now you know!
+
+```ts
+const hook = createSyncHook()
+// result: any
+const result = hook.call()
+```
+```ts
+// This partial template param condition will not as accurate
+const hook = createSyncHook<()=>string>()
+// result: string | void
+const result = hook.call()
+```
+```ts
+const hook = createSyncHook<() => string, void, any, 'bail'>()
+// result: string
+const result = hook.call()
+```
+```ts
+const hook = createSyncHook<() => string, void, any, 'sync'>()
+// result: void
+const result = hook.call()
+```
+
+
 ## Overriding Defaults
 If you would like to change the default behavior of a hook, you can simply override.
 ```ts
@@ -224,7 +257,39 @@ export function createAsyncHook(opts: CreateHookOptions) {
 }
 ```
 
-# Differences From `Tapable`
+# Reference
+
+## Hook Types
+
+### series
+Each hook is called one after another.
+Return values are ignored.
+
+### parallel
+Each hook is called in parallel.
+`hook.call` will resolve after all taps resolve or reject.
+Return values are ignored.
+
+### waterfall
+Each hook is called in series, 
+receiving the value the previous hook returned.
+`hook.call` will resolve with the final returned value,
+after all taps resolve.
+
+### bail
+Each hook is called in series.
+When one hook returns a value other than `undefined`,
+`hook.call` will return, and not calling the remaining hooks.
+The return value used to bail is not returned from `hook.call`.
+
+### loop
+Each hook is called in series.
+If one hook returns a value other than `undefined`,
+the `hook.call` will restart from the first hook.
+This will continue until all hooks return `undefined`.
+The return value used to cause the loop is returned from `hook.call`.
+
+## Differences From `Tapable`
 If you are familiar with Tapable, you might find this section of interest.
 
 * Taps are type-safe and use parameter types, return types, and context types.
@@ -240,17 +305,17 @@ If you are familiar with Tapable, you might find this section of interest.
 * Composable functions are used instead of classes.
 * Code generated is 1/10 to 1/7 the size for a .02% performance hit.
 
-# Implemented Functionality
+### Implemented Functionality
 Other `Tapable` functionality may be included in a future release.
 
-| Feature (of `Tapable`) | Implemented |
-|------------------------|-------------|
-| tap                    | yes         |
-| tapPromise             | yes         |
-| tapAsync               | yes         |
-| call                   | yes         |
-| sync                   | yes         |
-| context                | yes         |
-| Interception           | no          |
-| HookMap                | no          |
-| Multihook              | no          |
+| Feature (of `Tapable`) | Implemented | Comment              |
+|------------------------|-------------|----------------------|
+| tap                    | yes         | same as tapPromise   |
+| tapPromise             | yes         |                      |
+| tapAsync               | yes         |                      |
+| call                   | yes         | extended using call2 |
+| sync                   | yes         |                      |
+| context                | yes         | can be provided      |
+| Interception           | no          |                      |
+| HookMap                | no          |                      |
+| Multihook              | no          |                      |
