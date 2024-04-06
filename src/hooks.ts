@@ -5,10 +5,10 @@ import {
   HookCallback, HookCallbackAsync,
   HookErrorAction,
   HookType,
-  PType,
-  RType,
+  ParamType,
+  CallReturnType,
   SyncHook,
-  TapOptions, TapOptionsAsync, UntapHook
+  TapOptions, TapOptionsAsync, UntapHookFn, HookReturnType
 } from './types'
 import {generateParams, handleException, HookCallbackInfo, parseParams} from './util'
 import {removeOne} from '../../../util'

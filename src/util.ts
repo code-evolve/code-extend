@@ -1,4 +1,4 @@
-import {FnInfo, HookCallback, HookErrorAction, PType, TapOptions} from './types'
+import {FnInfo, HookCallback, HookErrorAction, HookType, ParamType, TapOptions} from './types'
 
 export function parseParams<PARAMS extends FnInfo, CONTEXT = any, TAPOPTS extends TapOptions<PARAMS, CONTEXT> = {}>
 (optsOrCallback: TAPOPTS | HookCallback<PARAMS, void>, callback?: HookCallback<PARAMS, CONTEXT, TAPOPTS>) {
@@ -71,7 +71,7 @@ export type HookCallbackInfo<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDA
  * @param context
  * @param params
  */
-export function generateParams<PARAMS extends FnInfo = any[], CONTEXT = any>(info: HookCallbackInfo<PARAMS, CONTEXT>, context: CONTEXT, params: PType<PARAMS>): PType<PARAMS, CONTEXT> {
+export function generateParams<PARAMS extends FnInfo = any[], CONTEXT = any>(info: HookCallbackInfo<PARAMS, CONTEXT>, context: CONTEXT, params: ParamType<PARAMS>): ParamType<PARAMS, CONTEXT> {
   if (info.useContext) {
     return [context, ...params] as any
   } else {
