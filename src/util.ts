@@ -1,8 +1,8 @@
 import {FnInfo, HookCallback, HookErrorAction, HookType, ParamType, TapOptions} from './types'
 
-export function parseParams<PARAMS extends FnInfo, CONTEXT = any, TAPOPTS extends TapOptions<PARAMS, CONTEXT> = {}>
-(optsOrCallback: TAPOPTS | HookCallback<PARAMS, void>, callback?: HookCallback<PARAMS, CONTEXT, TAPOPTS>) {
-  let _callback: HookCallback<PARAMS, CONTEXT, TAPOPTS> | undefined
+export function parseParams<PARAMS extends FnInfo, CONTEXT = any, HOOKOPTS extends HookType = any, TAPOPTS extends TapOptions<PARAMS, CONTEXT> = {}>
+(optsOrCallback: TAPOPTS | HookCallback<PARAMS, void>, callback?: HookCallback<PARAMS, CONTEXT, HOOKOPTS, TAPOPTS>) {
+  let _callback: HookCallback<PARAMS, CONTEXT, HOOKOPTS, TAPOPTS> | undefined
   let useContext: boolean
   let data: any
   if (typeof optsOrCallback === 'function') {
@@ -40,30 +40,30 @@ export function handleException(onError: HookErrorAction, e: unknown) {
   }
 }
 
-export type HookCallbackInfoTrue<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any> = {
-  callback: HookCallback<PARAMS, CONTEXT, {
+export type HookCallbackInfoTrue<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKOPTS extends HookType = any, TAPDATA = any> = {
+  callback: HookCallback<PARAMS, CONTEXT, HOOKOPTS, {
     context: true
   }>
   useContext: true
   data: TAPDATA
 }
 
-export type HookCallbackInfoFalse<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any> = {
-  callback: HookCallback<PARAMS, CONTEXT, {
+export type HookCallbackInfoFalse<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKOPTS extends HookType = any, TAPDATA = any> = {
+  callback: HookCallback<PARAMS, CONTEXT, HOOKOPTS, {
     context: false
   }>
   useContext: false
   data: TAPDATA
 }
 
-export type HookCallbackInfoVoid<PARAMS extends FnInfo = any[], TAPDATA = any> = {
+export type HookCallbackInfoVoid<PARAMS extends FnInfo = any[], HOOKOPTS extends HookType = any, TAPDATA = any> = {
   callback: HookCallback<PARAMS, void>
   useContext: unknown
   data: TAPDATA
 }
 
-export type HookCallbackInfo<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any> =
-  HookCallbackInfoTrue<PARAMS, CONTEXT, TAPDATA> | HookCallbackInfoFalse<PARAMS, CONTEXT, TAPDATA> | HookCallbackInfoVoid<PARAMS, TAPDATA>
+export type HookCallbackInfo<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKOPTS extends HookType = any, TAPDATA = any> =
+  HookCallbackInfoTrue<PARAMS, CONTEXT, HOOKOPTS, TAPDATA> | HookCallbackInfoFalse<PARAMS, CONTEXT, HOOKOPTS, TAPDATA> | HookCallbackInfoVoid<PARAMS, HOOKOPTS, TAPDATA>
 
 /**
  * Prepends a context object if the tap client requests it.

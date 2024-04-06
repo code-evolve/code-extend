@@ -13,8 +13,8 @@ import {
 import {generateParams, handleException, HookCallbackInfo, parseParams} from './util'
 import {removeOne} from '../../../util'
 
-export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = any>(opts?: CreateHookOptions): SyncHook<PARAMS, CONTEXT, TAPDATA> {
-  const callbacks: HookCallbackInfo<any, CONTEXT, TAPDATA>[] = []
+export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = any, HOOKTYPE extends HookType = undefined>(opts?: CreateHookOptions): SyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+  const callbacks: HookCallbackInfo<any, CONTEXT, HOOKTYPE, TAPDATA>[] = []
   // WORKAROUND Should not need to ts-ignore
   // @ts-ignore
   const onError: HookErrorAction = typeof opts === 'string' ? 'log' : opts?.onError ?? 'log'
@@ -28,9 +28,9 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
     tap,
   }
 
-  function tap<TAPOPTS extends TapOptions<PARAMS, CONTEXT>>
-  (optsOrCallback: TAPOPTS | HookCallback<PARAMS, void>, callback?: HookCallback<PARAMS, CONTEXT, TAPOPTS>) {
-    const info = parseParams<PARAMS, CONTEXT, TAPOPTS>(optsOrCallback, callback)
+  function tap<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
+  (optsOrCallback: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>) {
+    const info = parseParams<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>(optsOrCallback, callback)
     callbacks.push(info)
 
     return () => {
@@ -38,11 +38,11 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
     }
   }
 
-  function call(...args: CallType<PARAMS>): RType<PARAMS> | undefined {
+  function call(...args: CallType<PARAMS>): CallReturnType<PARAMS, HOOKTYPE> {
     return call2({args})
   }
 
-  function call2(callOpts: Call2Opts<PARAMS, CONTEXT>): RType<PARAMS> | undefined {
+  function call2(callOpts: Call2Opts<PARAMS, CONTEXT> = {}): CallReturnType<PARAMS, HOOKTYPE> {
     const args = callOpts.args ?? {} as CallType<PARAMS>
     const context = callOpts.context ?? {} as CONTEXT
     const {filter} = callOpts
@@ -111,8 +111,8 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
 
 }
 
-export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = any>(opts?: CreateHookOptions): AsyncHook<PARAMS, CONTEXT, TAPDATA> {
-  const callbacks: HookCallbackInfo<any, CONTEXT, TAPDATA>[] = []
+export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined>(opts?: CreateHookOptions): AsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+  const callbacks: HookCallbackInfo<any, CONTEXT, HOOKTYPE,  TAPDATA>[] = []
   const onError: HookErrorAction = Array.isArray(opts) ? 'log' : opts?.onError ?? 'log'
   const hookType: HookType = Array.isArray(opts) ? 'parallel' : opts?.type ?? 'parallel'
 
@@ -125,47 +125,51 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
   }
 
   function tapPromise<TAPOPTS extends TapOptions<PARAMS, CONTEXT>>
-  (optsOrCallback: TAPOPTS | HookCallback<PARAMS, void>, callback?: HookCallback<PARAMS, CONTEXT, TAPOPTS>): UntapHook {
-    const info = parseParams(optsOrCallback, callback)
+  (optsOrCallback: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
+    const info = parseParams<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>(optsOrCallback, callback)
     callbacks.push(info)
     return () => {
       removeOne(callbacks, it => it === info)
     }
   }
 
-  function tapAsync<TAPOPTS extends TapOptionsAsync<PARAMS, CONTEXT>>
-  (optsOrCallback: TAPOPTS | HookCallbackAsync<PARAMS, void>, callback?: HookCallbackAsync<PARAMS, CONTEXT, TAPOPTS>): UntapHook {
+  function tapAsync<TAPOPTS extends TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE>>
+  (optsOrCallback: TAPOPTS | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
     const cb = callback ?? optsOrCallback as any
-    const callbackAdapter = async (...args: CallType<PARAMS>) => {
-      return new Promise<RType<PARAMS>>((resolve, reject) => {
+
+    const callbackAdapter = async (...args: ParamType<PARAMS, CONTEXT>) => {
+      return new Promise<HookReturnType<PARAMS, HOOKTYPE>>((resolve, reject) => {
         cb.apply(undefined, [
           ...args,
+          // done
           (value: any) => {
             resolve(value)
           },
+          // err
           (e: any) => {
             reject(e)
           }
         ])
       })
     }
+
     if (!callback) {
-      return tapPromise(callbackAdapter)
+      return tapPromise(callbackAdapter as any)
     } else {
-      const optsAdapter: TapOptions<PARAMS, CONTEXT> = Object.assign(
+      const optsAdapter = Object.assign(
         {},
         optsOrCallback,
         {handler: callbackAdapter}
       )
-      return tapPromise(optsAdapter, callbackAdapter)
+      return tapPromise(optsAdapter as any, callbackAdapter as any)
     }
   }
 
-  async function call(...args: PType<PARAMS>): Promise<RType<PARAMS> | undefined> {
+  async function call(...args: CallType<PARAMS>): Promise<CallReturnType<PARAMS, HOOKTYPE>> {
     return call2({args})
   }
 
-  async function call2(callOpts: Call2Opts<PARAMS, CONTEXT>): Promise<RType<PARAMS> | undefined> {
+  async function call2(callOpts: Call2Opts<PARAMS, CONTEXT> = {}): Promise<CallReturnType<PARAMS, HOOKTYPE>> {
     const args = callOpts.args ?? [] as unknown as CallType<PARAMS>
     const context = callOpts.context ?? {} as CONTEXT
     const {filter} = callOpts

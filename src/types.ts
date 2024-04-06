@@ -1,86 +1,117 @@
 /**
- * Hook types may be expressed using a tuple or function signature.
+ * Hook types can be expressed using a tuple or function signature.
  * Either approach can use named or unnamed arguments.
  * The function signature approach allows indicating a return type.
+ * The return type is only applicable for waterfall hooks.
  *
- * - Hook<[string, boolean]>
- * - Hook<[a:string, b:boolean]>
- * - Hook<(string, boolean) => number>
- * - Hook<(a:string, b:boolean) => number>
+ * - Hook<[string, boolean]>()
+ * - Hook<[a:string, b:boolean]>()
+ * - Hook<(string, boolean) => number>()
+ * - Hook<(a:string, b:boolean) => number>()
  *
  *   The second template parameter indicates the context type.
- *   Hook<[string], {foo:string, bar: number}>
+ *   Hook<[string], {foo:string, bar: number}>()
+ *
+ *   The third template parameter indicates the tap data type.
+ *   Hook<[string],  {foo:string, bar: number}, MyDataType>()
  *
  */
 export type FnInfo = any[] | ((...args: any[]) => any)
 
-export type PType<T extends FnInfo, CONTEXT = void> =
-    CONTEXT extends void
-        ? T extends (...args: any[]) => any ? Parameters<T> : T
-        // @ts-ignore
-        : T extends (...args: any[]) => any ? [CONTEXT, ...Parameters<T>] : [CONTEXT, ...T]
-// : T extends (...args: any[]) => any ? [CONTEXT, ...Parameters<T>] : [CONTEXT, ...any[]]
-
 export type CallType<T extends FnInfo> =
-    T extends (...args: any[]) => any ? Parameters<T> : T
+  T extends (...args: infer X) => any ? X : T
 
-export type RType<T extends FnInfo> =
-    T extends (...args: any[]) => any ? ReturnType<T> : any
+/**
+ * For waterfall and bail hooks, when the tuple style is used, the return type is `any`.
+ * Otherwise it is the provided function's return type,
+ * or any if no information was provided.
+ * For all other hooks, the return type is void.
+ */
+export type CallReturnType<T extends FnInfo, HOOKTYPE extends HookType | undefined> =
+  HOOKTYPE extends undefined
+    ? (T extends (...args: any[]) => infer D ? D : any) | void
+    : HOOKTYPE extends 'waterfall' | 'bail'
+      ? T extends (...args: any[]) => infer D ? D : any
+      : void
 
-export type HookFn<PARAMS extends FnInfo = any[]> = (callback: HookCallback<PARAMS>) => UntapHook
 
-export type HookCallback<PARAMS extends FnInfo = any[], CONTEXT = any, TAPOPS extends {
+/**
+ * When the tuple style is used, the return type is `any`.
+ * For waterfall and bail hooks, the return type is always any (or a fn style return value)
+ * For loop hooks, the return type is always any.
+ * For all other hooks, the return type is void.
+ */
+export type HookReturnType<T extends FnInfo, HOOKTYPE extends HookType> =
+  HOOKTYPE extends 'waterfall' | 'bail'
+    ? T extends (...args: any[]) => infer D ? D : any
+    : void
+
+/**
+ * When a tap requests content, the context will be the first parameter,
+ * followed by the FnInfo parameters.
+ */
+export type ParamType<T extends FnInfo, CONTEXT = void> =
+  CONTEXT extends void
+    ? T extends (...args: any[]) => any ? Parameters<T> : T
+    // @ts-ignore
+    : T extends (...args: any[]) => any ? [CONTEXT, ...Parameters<T>] : [CONTEXT, ...T]
+
+export type HookFn<PARAMS extends FnInfo = any[]> = (callback: HookCallback<PARAMS>) => UntapHookFn
+
+export type HookCallback<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE extends HookType = any, TAPOPTS extends {
   context?: boolean
-  data?: TAPOPS
-} = {}> =
-    TAPOPS extends {
-          context: true
-        } ? (...params: PType<PARAMS, CONTEXT>) => RType<PARAMS> | Promise<RType<PARAMS>>
-        : (...params: PType<PARAMS, void>) => RType<PARAMS> | Promise<RType<PARAMS>>
+  data?: any
+} = {}> = TAPOPTS extends {
+    context: true
+  } ? (...params: ParamType<PARAMS, CONTEXT>) => HookReturnType<PARAMS, HOOKTYPE> | Promise<HookReturnType<PARAMS, HOOKTYPE>>
+  : (...params: ParamType<PARAMS, void>) => HookReturnType<PARAMS, HOOKTYPE> | Promise<HookReturnType<PARAMS, HOOKTYPE>>
 
-export type HookCallbackAsync<PARAMS extends FnInfo = any[], CONTEXT = any, TAPOPS extends {
-  context?: boolean
-  data?: TAPOPS
-} = {}> =
-    TAPOPS extends {
-          context: true
-        } ? (...params: [c: CONTEXT, ...CallType<PARAMS>, done: (arg0: RType<PARAMS>) => void, err: (arg0: unknown) => void]) => void
-        : (...params: [...CallType<PARAMS>, done: (arg0: RType<PARAMS>) => void, err: (arg0: unknown) => void]) => void
+export type HookCallbackAsync<PARAMS extends FnInfo = any[], CONTEXT = any,
+  HOOKTYPE extends HookType = any,
+  TAPOPTS extends {
+    context?: boolean
+    data?: any
+  } = {}> =
+  TAPOPTS extends {
+      context: true
+      // TODO done and error should be combined into one?
+    } ? (...params: [c: CONTEXT, ...CallType<PARAMS>, done: (arg0: HookReturnType<PARAMS, HOOKTYPE>) => void, err: (arg0: unknown) => void]) => void
+    : (...params: [...CallType<PARAMS>, done: (arg0: HookReturnType<PARAMS, HOOKTYPE>) => void, err: (arg0: unknown) => void]) => void
 
-export type UntapHook = () => void
+export type UntapHookFn = () => void
 
-export interface Hook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any> {
-  call(...args: CallType<PARAMS>): RType<PARAMS> | undefined | Promise<RType<PARAMS> | undefined>
+export interface Hook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined> {
+  call(...args: CallType<PARAMS>): CallReturnType<PARAMS, HOOKTYPE> | Promise<CallReturnType<PARAMS, HOOKTYPE>>
 
-  call2(opts: Call2Opts<PARAMS, CONTEXT, TAPDATA>): RType<PARAMS> | undefined | Promise<RType<PARAMS> | undefined>
+  call2(opts: Call2Opts<PARAMS, CONTEXT, TAPDATA>): CallReturnType<PARAMS, HOOKTYPE> | Promise<CallReturnType<PARAMS, HOOKTYPE>>
 
-  tap<TAPOPS extends TapOptions<PARAMS, CONTEXT>>
-  (callbackOrOpts: TAPOPS | HookCallback<PARAMS, void>, callback?: HookCallback<PARAMS, CONTEXT, TAPOPS>): UntapHook
+  tap<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
+  (callbackOrOpts: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
 }
 
-export interface SyncHook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any> extends Hook<PARAMS, CONTEXT> {
-  tap<TAPOPS extends TapOptions<PARAMS, CONTEXT>>
-  (callbackOrOpts: TAPOPS | HookCallback<PARAMS, void>, callback?: HookCallback<PARAMS, CONTEXT, TAPOPS>): UntapHook
+export interface SyncHook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined> {
+  call(...args: CallType<PARAMS>): CallReturnType<PARAMS, HOOKTYPE>
 
-  call(...args: CallType<PARAMS>): RType<PARAMS> | undefined
+  call2(opts?: Call2Opts<PARAMS, CONTEXT, TAPDATA>): CallReturnType<PARAMS, HOOKTYPE>
 
-  call2(opts: Call2Opts<PARAMS, CONTEXT, TAPDATA>): RType<PARAMS> | undefined
+  tap<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
+  (callbackOrOpts: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
 }
 
-export interface AsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = any> extends Hook<PARAMS, CONTEXT> {
-  call(...args: CallType<PARAMS>): Promise<RType<PARAMS> | undefined>
+export interface AsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined> {
+  call(...args: CallType<PARAMS>): Promise<CallReturnType<PARAMS, HOOKTYPE>>
 
-  call2(opts: Call2Opts<PARAMS, CONTEXT, TAPDATA>): Promise<RType<PARAMS> | undefined>
+  call2(opts?: Call2Opts<PARAMS, CONTEXT, TAPDATA>): Promise<CallReturnType<PARAMS, HOOKTYPE>>
 
   // Same as AsyncHook.tapPromise
-  tap<TAPOPS extends TapOptions<PARAMS, CONTEXT>>
-  (optsOrCallback: TAPOPS | HookCallback<PARAMS, void>, callback?: HookCallback<PARAMS, CONTEXT, TAPOPS>): UntapHook
+  tap<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
+  (optsOrCallback: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
 
-  tapPromise<TAPOPS extends TapOptions<PARAMS, CONTEXT>>
-  (optsOrCallback: TAPOPS | HookCallback<PARAMS, void>, callback?: HookCallback<PARAMS, CONTEXT, TAPOPS>): UntapHook
+  tapPromise<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
+  (optsOrCallback: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
 
-  tapAsync<TAPOPS extends TapOptionsAsync<PARAMS, CONTEXT>>
-  (optsOrCallback: TAPOPS | HookCallbackAsync<PARAMS, void>, callback?: HookCallbackAsync<PARAMS, CONTEXT, TAPOPS>): UntapHook
+  tapAsync<TAPOPTS extends TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE>>
+  (optsOrCallback: TAPOPTS | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
 }
 
 export type Call2Opts<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any> = {
@@ -89,28 +120,32 @@ export type Call2Opts<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = an
   filter?: (data: TAPDATA) => boolean
 }
 
-export type TapOptions<PARAMS extends FnInfo = any[], CONTEXT = any> = {
+export type TapOptions<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE extends HookType = any> = {
   name?: string
   context?: boolean
-  handler?: HookCallback<PARAMS, CONTEXT>
+  handler?: HookCallback<PARAMS, CONTEXT, HOOKTYPE>
   data?: any
 }
 
-export type TapOptionsAsync<PARAMS extends FnInfo = any[], CONTEXT = any> = {
+export type TapOptionsAsync<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE extends HookType = any> = {
   name?: string
   context?: boolean
-  handler?: HookCallbackAsync<PARAMS, CONTEXT>
+  handler?: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE>
   data?: any
 }
 
 export type CreateHookOptions = string[] | CreateHookOptionObj
 
 export type CreateHookOptionObj = {
+  /**
+   * Tapable style arguments.
+   * These are names, and not typed.
+   */
   args?: string[]
   /**
    * Default: log
    * The default behavior is to log the error but continue.
-   * This ensures one hook will not prevent another hook from running.
+   * This ensures one hook throwing will not prevent another hook from running.
    */
   onError?: HookErrorAction
   /**

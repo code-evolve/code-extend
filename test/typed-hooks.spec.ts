@@ -3,18 +3,25 @@
 import {test} from 'vitest'
 import {createAsyncHook, createSyncHook} from '../src'
 
-test('typed hooks - primitive', () => {
-  const hook = createSyncHook<[string, b: boolean]>()
+test('typed hooks - tuple - unnamed', () => {
+  const hook = createSyncHook<[string, boolean]>()
   hook.tap((a, b) => {
   })
   hook.call('ok', true)
 })
 
-test('typed hooks - object', () => {
-  const hook = createSyncHook<[{
+test('typed hooks - tuple - named', () => {
+  const hook = createSyncHook<[x: string, y: boolean]>()
+  hook.tap((a, b) => {
+  })
+  hook.call('ok', true)
+})
+
+test('typed hooks - tuple - object - named', () => {
+  const hook = createSyncHook<[x:{
     a: string,
     b: boolean
-  }, {
+  }, y: {
     c: number
   }]>()
   hook.tap((a, b) => {
@@ -25,8 +32,15 @@ test('typed hooks - object', () => {
   }, {c: 12})
 })
 
-test('typed hooks - return type', () => {
-  const hook = createSyncHook<(a: number) => string | void>()
+test('typed hooks - return - unnamed - type', () => {
+  const hook = createSyncHook<(number) => string | void>()
+  hook.tap((a) => {
+  })
+  hook.call(1)
+})
+
+test('typed hooks - return - name - type', () => {
+  const hook = createSyncHook<(x: number) => string | void>()
   hook.tap((a) => {
   })
   hook.call(1)
