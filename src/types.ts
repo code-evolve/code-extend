@@ -142,6 +142,7 @@ export type Call2Opts<PARAMS extends FnInfo, CONTEXT, TAPDATA> = {
 export type TapOptions<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType> = {
   name?: string
   context?: boolean
+  reverse?: boolean
   handler?: HookCallback<PARAMS, CONTEXT, HOOKTYPE>
   data?: any
 }
@@ -170,9 +171,11 @@ export type TapInfoFalse<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE 
 }
 
 export type TapInfoVoid<PARAMS extends FnInfo = any[], HOOKTYPE extends HookType = any, TAPDATA = any> = {
-  callback: HookCallback<PARAMS, void, HOOKTYPE>
+  name: string
   useContext: unknown
+  reverse: boolean
   data: TAPDATA
+  callback: HookCallback<PARAMS, void, HOOKTYPE>
 }
 
 export type TapInfo<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE extends HookType = any, TAPDATA = any> =

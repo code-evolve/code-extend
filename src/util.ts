@@ -1,26 +1,36 @@
 import {CallType, FnInfo, HookCallback, HookCallbackAsync, HookErrorAction, HookType, ParamType, TapInfo, TapOptions} from './types'
 
+let nextHookId = 1
+
 export function parseParams<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType, TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE> = {}, TAPDATA = any>
 (optsOrCallback: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>)
   : TapInfo<PARAMS, CONTEXT, HOOKTYPE, TAPDATA> {
   let _callback: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | undefined
   let useContext: boolean
-  let data: any
+  let data: TAPDATA
+  let name: string
+  let reverse: boolean
   if (typeof optsOrCallback === 'function') {
     _callback = optsOrCallback as any
     useContext = false
     data = undefined
+    name = 'Unnamed Hook ' + nextHookId++
+    reverse = false
   } else {
     _callback = optsOrCallback.handler ?? callback as any
     useContext = optsOrCallback.context ?? false
     data = optsOrCallback.data
+    name = optsOrCallback.name ?? 'Unnamed Hook ' + nextHookId++
+    reverse = optsOrCallback.reverse ?? false
   }
   if (!_callback) {
     throw new Error('No callback provided')
   }
   return {
+    name,
     callback: _callback as any,
     useContext,
+    reverse,
     data,
   }
 }
