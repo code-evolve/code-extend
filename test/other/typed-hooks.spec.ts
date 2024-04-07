@@ -1,20 +1,24 @@
 // noinspection JSUnusedLocalSymbols
 
 import {test} from 'vitest'
-import {createAsyncHook, createSyncHook} from '../src'
+import {createAsyncHook, createSyncHook} from '../../src'
 
 test('typed hooks - tuple - unnamed', () => {
   const hook = createSyncHook<[string, boolean]>()
+  // a:string, b:boolean
   hook.tap((a, b) => {
   })
-  hook.call('ok', true)
+  // result: any
+  const result = hook.call('ok', true)
 })
 
 test('typed hooks - tuple - named', () => {
   const hook = createSyncHook<[x: string, y: boolean]>()
+  // a:string, b:boolean
   hook.tap((a, b) => {
   })
-  hook.call('ok', true)
+  // result: any
+  const result = hook.call('ok', true)
 })
 
 test('typed hooks - tuple - object - named', () => {
@@ -26,21 +30,25 @@ test('typed hooks - tuple - object - named', () => {
   }]>()
   hook.tap((a, b) => {
   })
-  hook.call({
+  // result: any
+  const result = hook.call({
     a: 'a',
     b: true
   }, {c: 12})
 })
 
-test('typed hooks - return - unnamed - type', () => {
+test('typed hooks - return - untyped - type', () => {
   const hook = createSyncHook<(number) => string | void>()
+  // a: any
   hook.tap((a) => {
   })
-  hook.call(1)
+  // result: string | void
+  const result = hook.call(1)
 })
 
 test('typed hooks - return - name - type', () => {
   const hook = createSyncHook<(x: number) => string | void>()
+  // a: number
   hook.tap((a) => {
   })
   hook.call(1)
@@ -86,8 +94,8 @@ test('typed hooks - async - data', () => {
     value: string
   }>()
 
-  // a:number
   hook.tap({data: {value: 'x'}}, () => {
   })
+  // data: {value: string}
   hook.call2({filter: data => true})
 })

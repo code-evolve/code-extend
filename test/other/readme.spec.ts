@@ -1,5 +1,5 @@
 import {test} from 'vitest'
-import {createAsyncHook, createSyncHook} from '../src'
+import {createAsyncHook, createSyncHook} from '../../src'
 
 test('Async hooks', async () => {
   const asyncHook = createAsyncHook<(message: string) => void>()

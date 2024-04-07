@@ -23,15 +23,15 @@ export type CallType<T extends FnInfo> =
 
 /**
  * For waterfall and bail hooks, when the tuple style is used, the return type is `any`.
- * Otherwise it is the provided function's return type,
+ * Otherwise, it is the provided function's return type,
  * or any if no information was provided.
  * For all other hooks, the return type is void.
  */
-export type CallReturnType<T extends FnInfo, HOOKTYPE extends HookType | undefined> =
+export type CallReturnType<PARAMS extends FnInfo, HOOKTYPE extends HookType | undefined> =
   HOOKTYPE extends undefined
-    ? (T extends (...args: any[]) => infer D ? D : any) | void
+    ? (PARAMS extends (...args: any[]) => infer D ? D : any) | void
     : HOOKTYPE extends 'waterfall' | 'bail'
-      ? T extends (...args: any[]) => infer D ? D : any
+      ? PARAMS extends (...args: any[]) => infer D ? D : any
       : void
 
 
@@ -44,30 +44,33 @@ export type CallReturnType<T extends FnInfo, HOOKTYPE extends HookType | undefin
 export type HookReturnType<T extends FnInfo, HOOKTYPE extends HookType> =
   HOOKTYPE extends 'waterfall' | 'bail'
     ? T extends (...args: any[]) => infer D ? D : any
-    : void
+    : HookType extends 'loop'
+      ? any
+      : void
 
 /**
  * When a tap requests content, the context will be the first parameter,
  * followed by the FnInfo parameters.
  */
-export type ParamType<T extends FnInfo, CONTEXT = void> =
+export type ParamType<T extends FnInfo, CONTEXT> =
   CONTEXT extends void
     ? T extends (...args: any[]) => any ? Parameters<T> : T
     // @ts-ignore
-    : T extends (...args: any[]) => any ? [CONTEXT, ...Parameters<T>] : [CONTEXT, ...T]
+    : T extends (...args: any[]) => any ? [CONTEXT, ...Parameters<T>] :
+      T extends any[]
+        ? [CONTEXT, ...T]
+        : [CONTEXT, ...T[]]
 
-export type HookFn<PARAMS extends FnInfo = any[]> = (callback: HookCallback<PARAMS>) => UntapHookFn
-
-export type HookCallback<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE extends HookType = any, TAPOPTS extends {
+export type HookCallback<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType, TAPOPTS extends {
   context?: boolean
   data?: any
 } = {}> = TAPOPTS extends {
     context: true
   } ? (...params: ParamType<PARAMS, CONTEXT>) => HookReturnType<PARAMS, HOOKTYPE> | Promise<HookReturnType<PARAMS, HOOKTYPE>>
-  : (...params: ParamType<PARAMS, void>) => HookReturnType<PARAMS, HOOKTYPE> | Promise<HookReturnType<PARAMS, HOOKTYPE>>
+  : (...params: ParamType<PARAMS, void>) => HookReturnType<PARAMS, HOOKTYPE>
 
-export type HookCallbackAsync<PARAMS extends FnInfo = any[], CONTEXT = any,
-  HOOKTYPE extends HookType = any,
+export type HookCallbackAsync<PARAMS extends FnInfo, CONTEXT,
+  HOOKTYPE extends HookType,
   TAPOPTS extends {
     context?: boolean
     data?: any
@@ -80,14 +83,26 @@ export type HookCallbackAsync<PARAMS extends FnInfo = any[], CONTEXT = any,
 
 export type UntapHookFn = () => void
 
-export interface Hook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined> {
-  call(...args: CallType<PARAMS>): CallReturnType<PARAMS, HOOKTYPE> | Promise<CallReturnType<PARAMS, HOOKTYPE>>
-
-  call2(opts: Call2Opts<PARAMS, CONTEXT, TAPDATA>): CallReturnType<PARAMS, HOOKTYPE> | Promise<CallReturnType<PARAMS, HOOKTYPE>>
-
-  tap<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
-  (callbackOrOpts: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
+// TODO match Tapable tapInfo
+// tapInfo = { type: "promise", name: "GoogleMapsPlugin", fn: ... }
+export type InterceptOptions<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookType> = {
+  call?: (...args: CallType<PARAMS>) => void
+  // Read only
+  tap?: (info: TapInfo<PARAMS, CONTEXT, HOOKTYPE, unknown>) => void
+  untap?: (info: TapInfo<PARAMS, CONTEXT, HOOKTYPE, unknown>) => void
+  // Writable
+  register?: (info: TapInfo<PARAMS, CONTEXT, HOOKTYPE, TAPDATA>) => TapInfo<PARAMS, CONTEXT, HOOKTYPE, TAPDATA> | undefined
+  loop?: (...args: CallType<PARAMS>) => void
 }
+
+// export interface Hook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined> {
+//   call(...args: CallType<PARAMS>): CallReturnType<PARAMS, HOOKTYPE> | Promise<CallReturnType<PARAMS, HOOKTYPE>>
+//
+//   call2(opts: Call2Opts<PARAMS, CONTEXT, TAPDATA>): CallReturnType<PARAMS, HOOKTYPE> | Promise<CallReturnType<PARAMS, HOOKTYPE>>
+//
+//   tap<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
+//   (callbackOrOpts: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
+// }
 
 export interface SyncHook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined> {
   call(...args: CallType<PARAMS>): CallReturnType<PARAMS, HOOKTYPE>
@@ -96,6 +111,8 @@ export interface SyncHook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA 
 
   tap<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
   (callbackOrOpts: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
+
+  intercept(opts: InterceptOptions<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>): UntapHookFn
 }
 
 export interface AsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined> {
@@ -105,34 +122,61 @@ export interface AsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = any, 
 
   // Same as AsyncHook.tapPromise
   tap<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
-  (optsOrCallback: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
+  (optsOrCallback: TAPOPTS | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
 
   tapPromise<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
-  (optsOrCallback: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
+  (optsOrCallback: TAPOPTS | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
 
   tapAsync<TAPOPTS extends TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE>>
   (optsOrCallback: TAPOPTS | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
+
+  intercept(opts: InterceptOptions<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>): UntapHookFn
 }
 
-export type Call2Opts<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any> = {
+export type Call2Opts<PARAMS extends FnInfo, CONTEXT, TAPDATA> = {
   args?: CallType<PARAMS>
   context?: CONTEXT
   filter?: (data: TAPDATA) => boolean
 }
 
-export type TapOptions<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE extends HookType = any> = {
+export type TapOptions<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType> = {
   name?: string
   context?: boolean
   handler?: HookCallback<PARAMS, CONTEXT, HOOKTYPE>
   data?: any
 }
 
-export type TapOptionsAsync<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE extends HookType = any> = {
+export type TapOptionsAsync<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType> = {
   name?: string
   context?: boolean
   handler?: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE>
   data?: any
 }
+
+export type TapInfoTrue<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE extends HookType = any, TAPDATA = any> = {
+  callback: HookCallback<PARAMS, CONTEXT, HOOKTYPE, {
+    context: true
+  }>
+  useContext: true
+  data: TAPDATA
+}
+
+export type TapInfoFalse<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE extends HookType = any, TAPDATA = any> = {
+  callback: HookCallback<PARAMS, CONTEXT, HOOKTYPE, {
+    context: false
+  }>
+  useContext: false
+  data: TAPDATA
+}
+
+export type TapInfoVoid<PARAMS extends FnInfo = any[], HOOKTYPE extends HookType = any, TAPDATA = any> = {
+  callback: HookCallback<PARAMS, void, HOOKTYPE>
+  useContext: unknown
+  data: TAPDATA
+}
+
+export type TapInfo<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE extends HookType = any, TAPDATA = any> =
+  TapInfoTrue<PARAMS, CONTEXT, HOOKTYPE, TAPDATA> | TapInfoFalse<PARAMS, CONTEXT, HOOKTYPE, TAPDATA> | TapInfoVoid<PARAMS, HOOKTYPE, TAPDATA>
 
 export type CreateHookOptions = string[] | CreateHookOptionObj
 

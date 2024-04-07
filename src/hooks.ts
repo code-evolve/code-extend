@@ -8,13 +8,21 @@ import {
   ParamType,
   CallReturnType,
   SyncHook,
-  TapOptions, TapOptionsAsync, UntapHookFn, HookReturnType
+  TapOptions, TapOptionsAsync, UntapHookFn, HookReturnType, InterceptOptions, TapInfo
 } from './types'
-import {generateParams, handleException, HookCallbackInfo, parseParams} from './util'
-import {removeOne} from '../../../util'
+import {generateParams, handleException, parseParams} from './util'
+import {removeOne} from '../../../util/array'
 
 export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = any, HOOKTYPE extends HookType = undefined>(opts?: CreateHookOptions): SyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
-  const callbacks: HookCallbackInfo<any, CONTEXT, HOOKTYPE, TAPDATA>[] = []
+  const callbacks: TapInfo<PARAMS, CONTEXT, HOOKTYPE, TAPDATA>[] = []
+  const {
+    interceptors,
+    notifyCall,
+    notifyTap,
+    notifyUntap,
+    notifyLoop,
+  } = useInterceptors()
+
   // WORKAROUND Should not need to ts-ignore
   // @ts-ignore
   const onError: HookErrorAction = typeof opts === 'string' ? 'log' : opts?.onError ?? 'log'
@@ -26,15 +34,19 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
     call,
     call2,
     tap,
+    intercept
   }
 
   function tap<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
   (optsOrCallback: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>) {
-    const info = parseParams<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>(optsOrCallback, callback)
+    let info = parseParams<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS, TAPDATA>(optsOrCallback, callback)
+
+    notifyTap(info)
     callbacks.push(info)
 
     return () => {
       removeOne(callbacks, it => it === info)
+      notifyUntap(info)
     }
   }
 
@@ -42,10 +54,12 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
     return call2({args})
   }
 
-  function call2(callOpts: Call2Opts<PARAMS, CONTEXT> = {}): CallReturnType<PARAMS, HOOKTYPE> {
+  function call2(callOpts: Call2Opts<PARAMS, CONTEXT, TAPDATA> = {}): CallReturnType<PARAMS, HOOKTYPE> {
     const args = callOpts.args ?? {} as CallType<PARAMS>
     const context = callOpts.context ?? {} as CONTEXT
     const {filter} = callOpts
+
+    notifyCall(args)
 
     let items = opts?.reverse ? callbacks.slice().reverse() : callbacks
     if (filter) {
@@ -91,6 +105,7 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
       case 'loop': {
         let loop = true
         while (loop) {
+          notifyLoop(args)
           loop = false
           for (const info of items) {
             try {
@@ -109,12 +124,46 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
     }
   }
 
+  function intercept(opts: InterceptOptions<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>) {
+    interceptors.push(opts)
+
+    return () => {
+      removeOne(interceptors, it => it === opts)
+    }
+  }
 }
 
-export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined>(opts?: CreateHookOptions): AsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
-  const callbacks: HookCallbackInfo<any, CONTEXT, HOOKTYPE,  TAPDATA>[] = []
+function useBasicHook<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookType>(opts?: CreateHookOptions) {
+  const callbacks: TapInfo<any, CONTEXT, HOOKTYPE, TAPDATA>[] = []
   const onError: HookErrorAction = Array.isArray(opts) ? 'log' : opts?.onError ?? 'log'
   const hookType: HookType = Array.isArray(opts) ? 'parallel' : opts?.type ?? 'parallel'
+
+  return {
+    callbacks,
+    onError,
+    hookType
+  }
+}
+
+export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined>(opts?: CreateHookOptions):
+  AsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+  // const callbacks: TapInfo<any, CONTEXT, HOOKTYPE, TAPDATA>[] = []
+  // const onError: HookErrorAction = Array.isArray(opts) ? 'log' : opts?.onError ?? 'log'
+  // const hookType: HookType = Array.isArray(opts) ? 'parallel' : opts?.type ?? 'parallel'
+
+  const {
+    callbacks,
+    onError,
+    hookType
+  } = useBasicHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>(opts)
+
+  const {
+    interceptors,
+    notifyCall,
+    notifyTap,
+    notifyUntap,
+    notifyLoop,
+  } = useInterceptors()
 
   return {
     call,
@@ -122,14 +171,17 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
     tap: tapPromise,
     tapPromise,
     tapAsync,
+    intercept,
   }
 
-  function tapPromise<TAPOPTS extends TapOptions<PARAMS, CONTEXT>>
-  (optsOrCallback: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
+  function tapPromise<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
+  (optsOrCallback: TAPOPTS | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
     const info = parseParams<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>(optsOrCallback, callback)
+    notifyTap(info)
     callbacks.push(info)
     return () => {
       removeOne(callbacks, it => it === info)
+      notifyUntap(info)
     }
   }
 
@@ -169,10 +221,12 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
     return call2({args})
   }
 
-  async function call2(callOpts: Call2Opts<PARAMS, CONTEXT> = {}): Promise<CallReturnType<PARAMS, HOOKTYPE>> {
+  async function call2(callOpts: Call2Opts<PARAMS, CONTEXT, TAPDATA> = {}): Promise<CallReturnType<PARAMS, HOOKTYPE>> {
     const args = callOpts.args ?? [] as unknown as CallType<PARAMS>
     const context = callOpts.context ?? {} as CONTEXT
     const {filter} = callOpts
+
+    notifyCall(args)
 
     let items = (typeof opts === 'object' && opts?.reverse) ? callbacks.slice().reverse() : callbacks
     if (filter) {
@@ -218,27 +272,8 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
         return value
       }
       case 'bail': {
-        // Throw if returned value is undefined
-        async function wrappedPromise<T = any>(promise: Promise<T>): Promise<T> {
-          try {
-            const result = await promise
-            if (result !== undefined) {
-              return result
-            } else {
-              // noinspection ExceptionCaughtLocallyJS
-              throw new Error('not handled')
-            }
-          } catch (e) {
-            // @ts-ignore
-            if (e.message !== 'not handled') {
-              handleException(onError, e)
-            }
-            throw new Error('not handled')
-          }
-        }
-
         const promises = items.map(async info => {
-          return wrappedPromise(info.callback.apply(undefined, generateParams(info, context, args)))
+          return wrappedPromise(info.callback.apply(undefined, generateParams(info, context, args)), onError)
         })
         try {
           return await Promise.any(promises)
@@ -250,6 +285,7 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
       case 'loop': {
         let loop = true
         while (loop) {
+          notifyLoop(args)
           try {
             loop = false
             for (const info of items) {
@@ -266,5 +302,88 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
         return undefined
       }
     }
+  }
+
+  function intercept(opts: InterceptOptions<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>) {
+    interceptors.push(opts)
+
+    return () => {
+      removeOne(interceptors, it => it === opts)
+    }
+  }
+}
+
+// Throw if returned value is undefined
+async function wrappedPromise<T = any>(promise: Promise<T>, onError: HookErrorAction): Promise<T> {
+  try {
+    const result = await promise
+    if (result !== undefined) {
+      return result
+    } else {
+      // noinspection ExceptionCaughtLocallyJS
+      throw new Error('not handled')
+    }
+  } catch (e) {
+    // @ts-ignore
+    if (e.message !== 'not handled') {
+      handleException(onError, e)
+    }
+    throw new Error('not handled')
+  }
+}
+
+function useInterceptors<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType, TAPDATA>() {
+  const interceptors: InterceptOptions<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>[] = []
+  const ERROR_MESSAGE = 'An interceptor threw an exception'
+  return {
+    interceptors,
+    notifyCall,
+    notifyTap,
+    notifyUntap,
+    notifyLoop,
+  }
+
+  function notifyCall(args: CallType<PARAMS>) {
+    interceptors.forEach(it => {
+      try {
+        it.call?.(...args)
+      } catch (e) {
+        console.error(ERROR_MESSAGE, e)
+      }
+    })
+  }
+
+  function notifyTap(info: TapInfo<PARAMS, CONTEXT, HOOKTYPE, any>) {
+    interceptors.forEach(it => {
+      try {
+        it.tap?.(info)
+        const newInfo = it.register?.(info)
+        if (newInfo && newInfo !== info) {
+          info = newInfo
+        }
+      } catch (e) {
+        console.error(ERROR_MESSAGE, e)
+      }
+    })
+  }
+
+  function notifyUntap(info: TapInfo<PARAMS, CONTEXT, HOOKTYPE, any>) {
+    interceptors.forEach(it => {
+      try {
+        it.untap?.(info)
+      } catch (e) {
+        console.error(ERROR_MESSAGE, e)
+      }
+    })
+  }
+
+  function notifyLoop(args: CallType<PARAMS>) {
+    interceptors.forEach(it => {
+      try {
+        it.loop?.apply(undefined, args)
+      } catch (e) {
+        console.error(ERROR_MESSAGE, e)
+      }
+    })
   }
 }

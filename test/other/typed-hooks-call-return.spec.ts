@@ -1,5 +1,5 @@
 import {test} from 'vitest'
-import {createAsyncHook, createSyncHook} from '../src'
+import {createAsyncHook, createSyncHook} from '../../src'
 
 // See https://github.com/microsoft/TypeScript/issues/26242
 // Limitation requiring all template params or none in order to get inference
