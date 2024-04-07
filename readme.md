@@ -1,11 +1,11 @@
 # Code-Extend
-Code-Extend is a framework for enabling your codebase to integrate
+Code-Extend is a framework for enabling a codebase to integrate
 plugins, addons, and extensions.
 
 By using a variety of customizable hook topologies,
 your architecture will become highly extensible and loosely coupled.
 
-Code-Extend leverage Typescript, giving your hooks
+Code-Extend leverages Typescript, giving your hooks
 compile-time type checking and automatic code completion.
 
 # Motivation
@@ -25,7 +25,7 @@ various types of hooks. Although Code-Extend is not a fork of `Tapable`,
 it strives to maintain some API compatibility. 
 
 # Features
-* Typesafe hooks
+* Typesafe hooks and interceptors
 * Custom error handling
 * Call filtering
 * Synchronous and asynchronous
@@ -33,6 +33,7 @@ it strives to maintain some API compatibility.
 * Fully tested
 * Lightning fast
 * Tiny footprint
+* No external dependencies
 
 # Usage
 
@@ -273,21 +274,23 @@ Return values are ignored.
 ### waterfall
 Each hook is called in series, 
 receiving the value that the previous hook returned.
-`hook.call` will resolve with the final returned value,
-after all taps resolve.
+`hook.call` will resolve after all tap 
+with the final returned value,
+after all taps resolve or reject.
 
 ### bail
 Each hook is called in series.
-When one hook returns a value other than `undefined`,
-`hook.call` will return; The remaining hooks are not called.
-The return value used to bail is returned from `hook.call`.
+Once one hook returns a value other than `undefined`,
+`hook.call` will return that value.
+The remaining hooks will not be called.
 
 ### loop
 Each hook is called in series.
 If one hook returns a value other than `undefined`,
 the `hook.call` will restart from the first hook.
 This will continue until all hooks return `undefined`.
-The return value used to cause the loop
+The return `not-undefined` value 
+that is used to initiate the loop
 is not returned from `hook.call`.
 
 ## Differences From `Tapable`
@@ -310,15 +313,34 @@ If you are familiar with Tapable, you might find this section of interest.
 ### Implemented Functionality
 Other `Tapable` functionality may be included in a future release.
 
-| Feature (of `Tapable`) | Implemented | Comment                        |
-|------------------------|-------------|--------------------------------|
-| tap                    | yes         | When async, same as tapPromise |
-| tapPromise             | yes         |                                |
-| tapAsync               | yes         |                                |
-| call                   | yes         | Extended using call2           |
-| sync                   | yes         |                                |
-| context                | yes         | Can be provided in hook.call   |
-| Interception           | yes         | tap, untap, register, and loop |
-| HookMap                | no          | Use call2({filter}) instead    |
-| Multihook              | no          |                                |
+| Feature | Implemented | Comment                        |
+|---------------------|-------------|--------------------------------|
+| tap                 | yes         | When async, same as tapPromise |
+| tapPromise          | yes         |                                |
+| tapAsync            | yes         |                                |
+| call                | yes         | Extended using call2           |
+| sync                | yes         |                                |
+| context             | yes         | Can be provided in hook.call   |
+| Interception        | yes         | tap, untap, register, and loop |
+| HookMap             | no          | Use call2({filter}) instead    |
+| Multihook           | no          |                                |
 
+# Developer
+## Testing
+One time
+```shell
+yarn test
+```
+Continuous
+```shell
+yarn testc
+```
+
+## Building
+To build the ES6 and UMD_CJS distribution, use the following command.
+All libraries and type definitions will be placed in the `./dist` directory.
+
+_Note: This will firs **clean** the `./dist` directory._
+```shell
+yarn build
+```
