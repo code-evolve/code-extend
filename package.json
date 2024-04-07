@@ -7,7 +7,8 @@
     "test": "vitest run",
     "testc": "vitest",
     "build": "vite build && yarn build:types",
-    "build:types": "tsc --project tsconfig.build.json || vite-node create-dts.ts"
+    "build:types": "tsc --project tsconfig.build.json || vite-node bin/create-dts.ts",
+    "package": "yarn build && yarn test && yarn pack --dry-run"
   },
   "devDependencies": {
     "rollup-plugin-dts": "^6.1.0",
