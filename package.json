@@ -32,7 +32,11 @@
     "vitest": "^1.4.0",
     "vue": "^3.4.21"
   },
-  "runkitExampleFilename": "demo/example.js",
+  "files": [
+    "dist",
+    "samples"
+  ],
+  "runkitExampleFilename": "samples/example.js",
   "license": "MIT",
   "packageManager": "yarn@4.1.1"
 }
