@@ -272,22 +272,23 @@ Return values are ignored.
 
 ### waterfall
 Each hook is called in series, 
-receiving the value the previous hook returned.
+receiving the value that the previous hook returned.
 `hook.call` will resolve with the final returned value,
 after all taps resolve.
 
 ### bail
 Each hook is called in series.
 When one hook returns a value other than `undefined`,
-`hook.call` will return, and not calling the remaining hooks.
-The return value used to bail is not returned from `hook.call`.
+`hook.call` will return; The remaining hooks are not called.
+The return value used to bail is returned from `hook.call`.
 
 ### loop
 Each hook is called in series.
 If one hook returns a value other than `undefined`,
 the `hook.call` will restart from the first hook.
 This will continue until all hooks return `undefined`.
-The return value used to cause the loop is returned from `hook.call`.
+The return value used to cause the loop
+is not returned from `hook.call`.
 
 ## Differences From `Tapable`
 If you are familiar with Tapable, you might find this section of interest.
@@ -295,6 +296,7 @@ If you are familiar with Tapable, you might find this section of interest.
 * Taps are type-safe and use parameter types, return types, and context types.
 * Taps can be removed (untapped).
 * Tap callback order can be reversed.
+* Untap interception was added.
 * Hooks can be filtered when called.
 * `promises` are used for async functionality with same signature as sync.
 * The `name` parameter is optional when calling `hook.tap`.
@@ -308,14 +310,15 @@ If you are familiar with Tapable, you might find this section of interest.
 ### Implemented Functionality
 Other `Tapable` functionality may be included in a future release.
 
-| Feature (of `Tapable`) | Implemented | Comment              |
-|------------------------|-------------|----------------------|
-| tap                    | yes         | same as tapPromise   |
-| tapPromise             | yes         |                      |
-| tapAsync               | yes         |                      |
-| call                   | yes         | extended using call2 |
-| sync                   | yes         |                      |
-| context                | yes         | can be provided      |
-| Interception           | no          |                      |
-| HookMap                | no          |                      |
-| Multihook              | no          |                      |
+| Feature (of `Tapable`) | Implemented | Comment                        |
+|------------------------|-------------|--------------------------------|
+| tap                    | yes         | When async, same as tapPromise |
+| tapPromise             | yes         |                                |
+| tapAsync               | yes         |                                |
+| call                   | yes         | Extended using call2           |
+| sync                   | yes         |                                |
+| context                | yes         | Can be provided in hook.call   |
+| Interception           | yes         | tap, untap, register, and loop |
+| HookMap                | no          | Use call2({filter}) instead    |
+| Multihook              | no          |                                |
+

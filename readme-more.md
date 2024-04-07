@@ -1,6 +1,21 @@
-# More Info
+# Testing
+One time
+```shell
+yarn test
+```
+Continuous
+```shell
+yarn testc
+```
 
-## Refactoring
+# Building
+To build the ES6 and CJS distribution, us the following command.
+The libraries will be placed in the `./dist` directory.
+```shell
+yarn build
+```
+
+# Refactoring (deprecated)
 We define Typescript definitions for `SyncHook`, `AsyncHook`, and `Hook`.
 The `Hook` interface uses union types and can be used for both `sync` and `async` hook types.  
 Our approach is  to _always await synchronous calls_,
