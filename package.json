@@ -1,0 +1,19 @@
+{
+  "name": "code-extend",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "test": "vitest run",
+    "testc": "vitest",
+    "build": "vite build && yarn build:types",
+    "build:types": "tsc --project tsconfig.build.json || vite-node create-dts.ts"
+  },
+  "devDependencies": {
+    "rollup-plugin-dts": "^6.1.0",
+    "typescript": "^5.4.4",
+    "vitest": "^1.4.0",
+    "vue": "^3.4.21"
+  },
+  "packageManager": "yarn@4.1.1"
+}
