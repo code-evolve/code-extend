@@ -1,5 +1,21 @@
 {
   "name": "code-extend",
+  "description": "Code-Extend is a framework for enabling a codebase to integrate plugins, addons, and extensions.  By using a variety of customizable hook topologies, your architecture will become highly extensible and loosely coupled",
+  "keywords": [
+    "plugin",
+    "addon",
+    "extension",
+    "callback",
+    "typescript",
+    "tapable",
+    "tap",
+    "hook",
+    "code-evolve",
+    "twelvetone",
+    "code extend",
+    "extend"
+  ],
+  "version": "0.0.1-beta.2",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
@@ -16,5 +32,7 @@
     "vitest": "^1.4.0",
     "vue": "^3.4.21"
   },
+  "runkitExampleFilename": "demo/example.js",
+  "license": "MIT",
   "packageManager": "yarn@4.1.1"
 }
