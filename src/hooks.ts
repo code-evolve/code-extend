@@ -11,7 +11,7 @@ import {
   TapOptions, TapOptionsAsync, UntapHookFn, HookReturnType, InterceptOptions, TapInfo
 } from './types'
 import {generateParams, handleException, parseParams} from './util'
-import {removeOne} from '../../../util/array'
+import {removeOne} from './array'
 
 export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = any, HOOKTYPE extends HookType = undefined>(opts?: CreateHookOptions): SyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
   const callbacks: TapInfo<PARAMS, CONTEXT, HOOKTYPE, TAPDATA>[] = []
