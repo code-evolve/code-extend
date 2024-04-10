@@ -403,7 +403,6 @@ function useBasicHook<CONTEXT, TAPDATA, HOOKTYPE extends HookType>(opts?: Create
   }
 
   function addCallback(callback: TapInfo<any, CONTEXT, HOOKTYPE, TAPDATA>) {
-    console.log(callback.name)
     callbacks.push(callback)
   }
 
