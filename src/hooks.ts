@@ -11,13 +11,20 @@ import {
   AsyncHook, Call2Opts, CallType,
   CreateHookOptions,
   FnInfo,
-  HookCallback, HookCallbackAsync,
+  HookCallbackSync, HookCallbackAsync,
   HookErrorAction,
   HookType,
   ParamType,
   CallReturnType,
   SyncHook,
-  TapOptions, TapOptionsAsync, UntapHookFn, HookReturnType, InterceptOptions, TapInfo, HookInfo, HookCallbackPromise, TapOptionsPromise
+  TapOptionsSync,
+  TapOptionsAsync,
+  UntapHookFn,
+  HookReturnType,
+  InterceptOptions,
+  TapInfo, HookInfo,
+  HookCallbackPromise,
+  TapOptionsPromise
 } from './types'
 import {generateParams, handleException, parseParams} from './util'
 import {removeOne} from './array'
@@ -78,8 +85,8 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
     return callbacks.length > 0
   }
 
-  function tap<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
-  (optsOrCallback: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>) {
+  function tap<TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE>>
+  (optsOrCallback: TAPOPTS | HookCallbackSync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>) {
     let info = parseParams<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS, TAPDATA>('sync', optsOrCallback, callback)
 
     info = interceptTap(info, callbacks)

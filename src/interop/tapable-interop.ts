@@ -10,8 +10,8 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 // Provide class for creating hooks using `new`, and conform to the Tapable API
 
 import {
-  Call2Opts, CallReturnType, CallType, FnInfo, HookCallback, HookType, InterceptOptions,
-  SyncHook as ISyncHook, AsyncHook as IAsyncHook, TapOptions, UntapHookFn, HookCallbackAsync, TapOptionsAsync, HookInfo, TapOptionsPromise, HookCallbackPromise
+  Call2Opts, CallReturnType, CallType, FnInfo, HookCallbackSync, HookType, InterceptOptions,
+  SyncHook as ISyncHook, AsyncHook as IAsyncHook, TapOptionsSync, UntapHookFn, HookCallbackAsync, TapOptionsAsync, HookInfo, TapOptionsPromise, HookCallbackPromise
 } from '../types'
 
 export {MultiHook} from '../multihook'
@@ -34,8 +34,8 @@ abstract class SyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE exten
     return false
   }
 
-  tap<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
-  (callbackOrOpts: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
+  tap<TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE>>
+  (callbackOrOpts: TAPOPTS | HookCallbackSync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
     return () => {
     }
   }
@@ -78,7 +78,7 @@ class AsyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookT
     return false
   }
 
-  tap<TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE>>
+  tap<TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE>>
   (callbackOrOpts: TAPOPTS | HookCallbackPromise<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
     return () => {
     }

@@ -7,18 +7,18 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-import {CallType, FnInfo, HookCallback, HookCallbackAsync, HookCallbackPromise, HookErrorAction, HookType, ParamType, TapInfo, TapOptions, TapOptionsAsync, TapOptionsPromise} from './types'
+import {CallType, FnInfo, HookCallbackSync, HookCallbackAsync, HookCallbackPromise, HookErrorAction, HookType, ParamType, TapInfo, TapOptionsSync, TapOptionsAsync, TapOptionsPromise} from './types'
 
 let nextHookId = 1
 
-export function parseParams<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType, TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE> = {}, TAPDATA = any>
+export function parseParams<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType, TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE> = {}, TAPDATA = any>
 (
   callbackType: 'sync' | 'promise' | 'async',
   optsOrCallback: TAPOPTS
-   | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS> | HookCallbackPromise<PARAMS, void, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>,
- callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>)
+   | HookCallbackSync<PARAMS, void, HOOKTYPE, TAPOPTS> | HookCallbackPromise<PARAMS, void, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>,
+ callback?: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>)
   : TapInfo<PARAMS, CONTEXT, HOOKTYPE, TAPDATA> {
-  let _callback: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | undefined
+  let _callback: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | undefined
   let useContext: boolean
   let data: TAPDATA
   let name: string
