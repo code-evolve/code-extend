@@ -255,7 +255,6 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
             await info.callback.apply(undefined, generateParams(info, context, args))
           } catch (e: any) {
             handleException(onError, e)
-            return
           }
         }
         break
