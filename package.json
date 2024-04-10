@@ -12,9 +12,10 @@
     "hook",
     "code-evolve",
     "twelvetone",
-    "extend"
+    "extend",
+    "codeextend"
   ],
-  "version": "0.0.1-beta.2",
+  "version": "0.0.1-beta.3",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",

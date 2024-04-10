@@ -1,9 +1,16 @@
+# 0.0.1-beta.3
+
+- task: Update docs
+- fix: Remove console.log
+- docs: Add usage overview
+- docs: Add more interop info 
+
 # 0.0.1-beta.2
 
-task: Publish initial project
-task: Monkeypatch Tapable unit tests
-feat: Add Tapable interop
+- task: Publish initial project
+- task: Monkeypatch Tapable unit tests
+- feat: Add Tapable interop
 
 # 0.0.1-beta.1
 
-task: Publish initial project shell
+- task: Publish initial project shell
