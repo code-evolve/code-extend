@@ -1,9 +1,22 @@
-import {CallType, FnInfo, HookCallback, HookCallbackAsync, HookErrorAction, HookType, ParamType, TapInfo, TapOptions} from './types'
+/*
+Copyright 2024 TwelveTone LLC
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+import {CallType, FnInfo, HookCallback, HookCallbackAsync, HookCallbackPromise, HookErrorAction, HookType, ParamType, TapInfo, TapOptions, TapOptionsAsync, TapOptionsPromise} from './types'
 
 let nextHookId = 1
 
-export function parseParams<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType, TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE> = {}, TAPDATA = any>
-(optsOrCallback: TAPOPTS | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>)
+export function parseParams<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType, TAPOPTS extends TapOptions<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE> = {}, TAPDATA = any>
+(
+  callbackType: 'sync' | 'promise' | 'async',
+  optsOrCallback: TAPOPTS
+   | HookCallback<PARAMS, void, HOOKTYPE, TAPOPTS> | HookCallbackPromise<PARAMS, void, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>,
+ callback?: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>)
   : TapInfo<PARAMS, CONTEXT, HOOKTYPE, TAPDATA> {
   let _callback: HookCallback<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | undefined
   let useContext: boolean
@@ -26,12 +39,14 @@ export function parseParams<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends Hoo
   if (!_callback) {
     throw new Error('No callback provided')
   }
+
   return {
     name,
-    callback: _callback as any,
+    fn: _callback as any,
     useContext,
     reverse,
     data,
+    type: callbackType,
   }
 }
 
@@ -57,7 +72,7 @@ export function handleException(onError: HookErrorAction, e: unknown) {
  * @param context
  * @param params
  */
-export function generateParams<PARAMS extends FnInfo = any[], CONTEXT = any>(info: TapInfo<PARAMS, CONTEXT>, context: CONTEXT, params: CallType<PARAMS>): ParamType<PARAMS, CONTEXT> {
+export function generateParams<PARAMS extends FnInfo = any[], CONTEXT = any>(info: TapInfo<PARAMS, CONTEXT, undefined, any>, context: CONTEXT, params: CallType<PARAMS>): ParamType<PARAMS, CONTEXT> {
   if (info.useContext) {
     return [context, ...params] as any
   } else {
