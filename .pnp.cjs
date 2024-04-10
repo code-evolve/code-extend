@@ -28,7 +28,6 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["@rollup/pluginutils", "virtual:590c3f765f818e70a47c8206ea23b869b0e19f53e3b4fe7646dd2c876d07293f63aef9cba5fd5d78d439118c8c7c3c9547defd3b0679efcc406ba813ff42b8ce#npm:5.1.0"],\
           ["license-check-and-add", "npm:4.0.5"],\
-          ["typescript", "patch:typescript@npm%3A5.4.4#optional!builtin<compat/typescript>::version=5.4.4&hash=5adc0c"],\
           ["vite-node", "npm:1.4.0"],\
           ["vitest", "virtual:590c3f765f818e70a47c8206ea23b869b0e19f53e3b4fe7646dd2c876d07293f63aef9cba5fd5d78d439118c8c7c3c9547defd3b0679efcc406ba813ff42b8ce#npm:1.4.0"],\
           ["vue", "virtual:590c3f765f818e70a47c8206ea23b869b0e19f53e3b4fe7646dd2c876d07293f63aef9cba5fd5d78d439118c8c7c3c9547defd3b0679efcc406ba813ff42b8ce#npm:3.4.21"]\
@@ -1038,7 +1037,6 @@ const RAW_RUNTIME_STATE =
           ["code-extend", "workspace:."],\
           ["@rollup/pluginutils", "virtual:590c3f765f818e70a47c8206ea23b869b0e19f53e3b4fe7646dd2c876d07293f63aef9cba5fd5d78d439118c8c7c3c9547defd3b0679efcc406ba813ff42b8ce#npm:5.1.0"],\
           ["license-check-and-add", "npm:4.0.5"],\
-          ["typescript", "patch:typescript@npm%3A5.4.4#optional!builtin<compat/typescript>::version=5.4.4&hash=5adc0c"],\
           ["vite-node", "npm:1.4.0"],\
           ["vitest", "virtual:590c3f765f818e70a47c8206ea23b869b0e19f53e3b4fe7646dd2c876d07293f63aef9cba5fd5d78d439118c8c7c3c9547defd3b0679efcc406ba813ff42b8ce#npm:1.4.0"],\
           ["vue", "virtual:590c3f765f818e70a47c8206ea23b869b0e19f53e3b4fe7646dd2c876d07293f63aef9cba5fd5d78d439118c8c7c3c9547defd3b0679efcc406ba813ff42b8ce#npm:3.4.21"]\
@@ -2680,15 +2678,6 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
-    ["typescript", [\
-      ["patch:typescript@npm%3A5.4.4#optional!builtin<compat/typescript>::version=5.4.4&hash=5adc0c", {\
-        "packageLocation": "../../../../../../../.yarn/berry/cache/typescript-patch-caac36e033-10c0.zip/node_modules/typescript/",\
-        "packageDependencies": [\
-          ["typescript", "patch:typescript@npm%3A5.4.4#optional!builtin<compat/typescript>::version=5.4.4&hash=5adc0c"]\
-        ],\
-        "linkType": "HARD"\
-      }]\
-    ]],\
     ["ufo", [\
       ["npm:1.5.3", {\
         "packageLocation": "../../../../../../../.yarn/berry/cache/ufo-npm-1.5.3-8c9d710312-10c0.zip/node_modules/ufo/",\
@@ -2876,7 +2865,7 @@ const RAW_RUNTIME_STATE =
           ["@vue/runtime-dom", "npm:3.4.21"],\
           ["@vue/server-renderer", "virtual:0a2ed845e7b9684583a02d363fc2c1e73eede9e897aabb0e2404593bf07174c6d6792f9603acaea6b036c618831f3f7d05871ae60d8b554c09e1f61155d51d0d#npm:3.4.21"],\
           ["@vue/shared", "npm:3.4.21"],\
-          ["typescript", "patch:typescript@npm%3A5.4.4#optional!builtin<compat/typescript>::version=5.4.4&hash=5adc0c"]\
+          ["typescript", null]\
         ],\
         "packagePeers": [\
           "@types/typescript",\

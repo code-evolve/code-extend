@@ -30,7 +30,6 @@
   "devDependencies": {
     "@rollup/pluginutils": "^5.1.0",
     "license-check-and-add": "^4.0.5",
-    "typescript": "^5.4.4",
     "vite-node": "^1.4.0",
     "vitest": "^1.4.0",
     "vue": "^3.4.21"
