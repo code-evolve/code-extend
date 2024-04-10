@@ -1,3 +1,8 @@
+# 0.0.1-beta.4
+
+- task: Refactor types
+- docs: Update parameter, usage, and error handling
+
 # 0.0.1-beta.3
 
 - task: Update docs
