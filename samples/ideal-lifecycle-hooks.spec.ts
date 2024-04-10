@@ -1,6 +1,10 @@
 import {expect, test} from 'vitest'
 import {idealLifecycleHooks} from './ideal-lifecycle-hooks'
 
+function log(...args: any[]) {
+  // log.apply(null, args)
+}
+
 export async function asyncWatest(milli: number) {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -15,21 +19,21 @@ test('should hook all items', async function () {
 
   Object.entries(idealLifecycleHooks.meta).map(it => {
     it[1].tap(() => {
-      console.log(it[0])
+      log(it[0])
       called.push(it[0])
     })
   })
 
   Object.entries(idealLifecycleHooks.content).map(it => {
     it[1].tap(() => {
-      console.log(it[0])
+      log(it[0])
       called.push(it[0])
     })
   })
 
   Object.entries(idealLifecycleHooks.install).map(it => {
     it[1].tap(() => {
-      console.log(it[0])
+      log(it[0])
       called.push(it[0])
     })
   })
