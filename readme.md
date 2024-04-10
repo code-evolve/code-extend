@@ -7,6 +7,18 @@ your architecture will become highly extensible and loosely coupled.
 
 Code-Extend leverages Typescript, giving your hooks
 compile-time type checking and automatic code completion.
+This includes types for all hooks, taps, calls, contexts,
+filter data, and interceptors!
+
+# Usage Overview
+```shell
+yarn add 'code-extend'
+npm install 'code-extend'
+```
+
+```shell
+const hook = createSyncHook()
+```
 
 # Motivation
 A plugin system requires an event bus for communication between the host and extensions.
@@ -17,24 +29,18 @@ disregards the return value of listeners.
 The Code-Extend library solves these issues, while also offering additional features to
 manage the topology and behavior of the event bus.
 
-# Inspiration
-This project was inspired by the `Tapable` project 
-that was contributed to the open-source community by the `Webpack` team.
-See [https://github.com/webpack/tapable](https://github.com/webpack/tapable).  The main superpower of `Tapable` is its ability to create
-various types of hooks. Although Code-Extend is not a fork of `Tapable`, 
-it strives to maintain some API compatibility. 
-
 # Features
 * Typesafe hooks and interceptors
 * Custom error handling
 * Call filtering
 * Synchronous and asynchronous
 * Variety of hook topologies
-* Written from the ground up using ES6 and composable functions.
+* Written from the ground up using ES6 and composable functions
 * Fully tested
 * Lightning fast
 * Tiny footprint
 * No external dependencies
+* Full interop with the Tapable library
 
 # Usage
 
@@ -299,54 +305,67 @@ The return `not-undefined` value
 that is used to initiate the loop
 is not returned from `hook.call`.
 
+# Inspiration
+This project was inspired by the `Tapable` project
+that was contributed to the open-source community by the `Webpack` team.
+See [https://github.com/webpack/tapable](https://github.com/webpack/tapable).  The main superpower of `Tapable` is its ability to create
+various types of hooks. Although Code-Extend is not a fork of `Tapable`,
+it strives to maintain some API compatibility.  If you already use
+Tapable, Code-Extend includes features that will supercharge your
+experience.
+
 ## Differences From `Tapable`
 If you are familiar with Tapable, you might find this section of interest.
 
-* Taps are type-safe and use parameter types, return types, and context types.
+* Hooks are type-safe.  This includes taps, calls, return types, context, filter
+    data and interceptors.
 * Taps can be removed (untapped).
 * Tap callback order can be reversed.
 * Untap interception was added.
-* Hooks can be filtered when called.
+* `call` and `tap` can be used for both sync and async hooks.
+* Hooks can be filtered when called, using a typesafe hook filter object.
 * `promises` are used for async functionality with same signature as sync.
 * The `name` parameter is optional when calling `hook.tap`.
 * Initial `context` can be supplied to the `hook.call`.
 * There are only 2 types of hooks: SyncHook and AsyncHook.
   All other types are specified using options (parallel, series, waterfall, bail, loop).
 * Options include controlling how exceptions in callbacks are handled.
-* Composable functions are used instead of classes.
-* Code generated is 1/10 to 1/7 the size for a .02% performance hit.
+* Composable functions are used internally, instead of classes.
+* Code generated is 1/10 to 1/7 the size of `Tapable`, for a .02% performance hit.
 
 ### Implemented Functionality
 Other `Tapable` functionality may be included in a future release.
 
-| Feature | Implemented | Comment                                      |
-|---------------------|-------------|----------------------------------------------|
-| tap                 | yes         | When async, same as `tapPromise`             |
-| tapPromise          | yes         | Recommended to use `tap` instead             |
-| tapAsync            | yes         |                                              |
-| call                | yes         | Extended using `call2`                       |
-| sync                | yes         | Recommended to use `tap` instead             |
-| context             | yes         | Can be provided in `hook.call`               |
-| Interception        | yes         | `tap`, `untap`, `register`, and `loop`       |
-| HookMap             | yes         | We recommend using `call2({filter})` instead |
-| Multihook           | yes         | May have issues with `withOptions` API       |
+| Feature | Implemented | Comment                                          |
+|---------------------|-------------|--------------------------------------------------|
+| tap                 | yes         | When async, same as `tapPromise`                 |
+| tapPromise          | yes         | Recommended to use `tap` instead                 |
+| tapAsync            | yes         |                                                  |
+| call                | yes         | Extended using `call2`                           |
+| sync                | yes         | Recommended to use `tap` instead                 |
+| context             | yes         | Can be provided in `hook.call`                   |
+| Interception        | yes         | `tap`, `untap`, `register`, and `loop`           |
+| HookMap             | yes         | We recommend using `call2({filter})` instead     |
+| Multihook           | yes         | Please check for issues using `withOptions` API  |
 
 ### Tapable Interop
 We have included an interop library that allows using `Code-Extend`
-as if it was `Tapable`.  This library uses ES6 proxies to wrap our
+with the `Tapable` API.  This library uses ES6 proxies to embed our
 composable architecture inside class instances.
+We have tested this library against the `Tapable` unit tests.
 
 ```ts
 import {Interop} from 'code-extend'
+// Now use Interop as if it was 'tapable'
 const {SyncHook} = Interop
 
-// Notice you are now required to name your taps, 
+// Notice you will be required to name your taps, 
 // as mandated by the `Tapable` API.
 
 const hook = new SyncHook(['message'])
 hook.tap('hook1', message => { console.log(message) })
 
-// Notice async hooks do not have `call` methods
+// Notice async hooks do not have `tap` or `call` methods
 // in the `Tapable` API
 
 const hook2 = new AsyncSeriesHook(['message'])
