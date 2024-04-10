@@ -30,6 +30,7 @@ it strives to maintain some API compatibility.
 * Call filtering
 * Synchronous and asynchronous
 * Variety of hook topologies
+* Written from the ground up using ES6 and composable functions.
 * Fully tested
 * Lightning fast
 * Tiny footprint
@@ -80,7 +81,7 @@ syncHook.tap((name, age) => console.log('The hook was called: ' + message + ' ' 
 syncHook.call('Woolly', 5)
 ```
 
-One named argument with return type
+One named argument with return type (using `()=>return` instead of `[]`)
 ```ts
 const syncHook = createSyncHook<(message:string)=>void>()
 syncHook.tap(message => console.log('The hook was called: ' + message))
@@ -88,7 +89,8 @@ syncHook.call('Hello')
 ```
 _note: Hook return types are only applicable to waterfall and bail hooks._
 
-## Untyped, named arguments (AKA the Tapable style)
+## Untyped, named arguments 
+This is the Tapable style, and **not recommended**.
 
 ```ts
 const syncHook = createSyncHook(['message'])
@@ -129,19 +131,19 @@ syncHook.call('Hello') // Exception will NOT be logged and second tap WILL be ca
 
 ```ts
 const asyncHook = createAsyncHook<(message: string) => void>()
-asyncHook.tap(message => console.log('Hook1 was called'))
-asyncHook.tap(message => console.log('Hook2 was called'))
+asyncHook.tap(async message => console.log('Hook1 was called'))
+asyncHook.tap(async message => console.log('Hook2 was called'))
 
-// tapPromise is Same as hook.tap
-asyncHook.tapPromise(message => console.log('Hook3 was called'))
+// tapPromise is same as hook.tap
+asyncHook.tapPromise(async message => console.log('Hook3 was called'))
 
 // tapAsync is the old-school callback API
-asyncHook.tapAsync((message, done, err) => {
+asyncHook.tapAsync((message, callback) => {
   console.log('Hook4 was called')
-  done()
+  callback(null)
 })
 
-await asyncHook.call('Hello') // All taps called in parallel by default
+await asyncHook.call('Hello') // All taps called in series by default
 ```
 
 ### Hook options
@@ -218,9 +220,9 @@ syncHook.call()
 ## Typing `hook.call` and `hook.call2`
 There is currently an issue with Typescript that
 prevents Typescript from inferring the hook type
-unless you provide all or no template parameters.
-This means you need to be redundant if you want your
-waterfall hook or bail hook to be locked in.
+unless provided with _all_ or _no_ template parameters.
+This means you need to be redundant when you want your
+waterfall hook or bail hook types to be locked in.
 
 Not a big deal, but now you know!
 
@@ -229,20 +231,23 @@ const hook = createSyncHook()
 // result: any
 const result = hook.call()
 ```
-```ts
-// This partial template param condition will not as accurate
-const hook = createSyncHook<()=>string>()
-// result: string | void
-const result = hook.call()
-```
+
 ```ts
 const hook = createSyncHook<() => string, void, any, 'bail'>()
 // result: string
 const result = hook.call()
 ```
+
 ```ts
 const hook = createSyncHook<() => string, void, any, 'sync'>()
 // result: void
+const result = hook.call()
+```
+
+```ts
+// This partial template param condition will not be as accurate
+const hook = createSyncHook<()=>string>()
+// result: string | void
 const result = hook.call()
 ```
 
@@ -277,12 +282,13 @@ receiving the value that the previous hook returned.
 `hook.call` will resolve after all tap 
 with the final returned value,
 after all taps resolve or reject.
+This hook is essentially a `pipeline`.
 
 ### bail
 Each hook is called in series.
 Once one hook returns a value other than `undefined`,
 `hook.call` will return that value.
-The remaining hooks will not be called.
+Any remaining hooks will not be called.
 
 ### loop
 Each hook is called in series.
@@ -313,17 +319,42 @@ If you are familiar with Tapable, you might find this section of interest.
 ### Implemented Functionality
 Other `Tapable` functionality may be included in a future release.
 
-| Feature | Implemented | Comment                        |
-|---------------------|-------------|--------------------------------|
-| tap                 | yes         | When async, same as tapPromise |
-| tapPromise          | yes         |                                |
-| tapAsync            | yes         |                                |
-| call                | yes         | Extended using call2           |
-| sync                | yes         |                                |
-| context             | yes         | Can be provided in hook.call   |
-| Interception        | yes         | tap, untap, register, and loop |
-| HookMap             | no          | Use call2({filter}) instead    |
-| Multihook           | no          |                                |
+| Feature | Implemented | Comment                                      |
+|---------------------|-------------|----------------------------------------------|
+| tap                 | yes         | When async, same as `tapPromise`             |
+| tapPromise          | yes         | Recommended to use `tap` instead             |
+| tapAsync            | yes         |                                              |
+| call                | yes         | Extended using `call2`                       |
+| sync                | yes         | Recommended to use `tap` instead             |
+| context             | yes         | Can be provided in `hook.call`               |
+| Interception        | yes         | `tap`, `untap`, `register`, and `loop`       |
+| HookMap             | yes         | We recommend using `call2({filter})` instead |
+| Multihook           | yes         | May have issues with `withOptions` API       |
+
+### Tapable Interop
+We have included an interop library that allows using `Code-Extend`
+as if it was `Tapable`.  This library uses ES6 proxies to wrap our
+composable architecture inside class instances.
+
+```ts
+import {Interop} from 'code-extend'
+const {SyncHook} = Interop
+
+// Notice you are now required to name your taps, 
+// as mandated by the `Tapable` API.
+
+const hook = new SyncHook(['message'])
+hook.tap('hook1', message => { console.log(message) })
+
+// Notice async hooks do not have `call` methods
+// in the `Tapable` API
+
+const hook2 = new AsyncSeriesHook(['message'])
+await hook2.promise('hook1', message => { console.log(message) })
+hook2.callAsync('hook1', (message, done) => { console.log(message); done() })
+// This will not work
+// await hook2.call('hook1', message => { console.log(message) })
+```
 
 # Developer
 ## Testing
@@ -337,10 +368,10 @@ yarn testc
 ```
 
 ## Building
-To build the ES6 and UMD_CJS distribution, use the following command.
-All libraries and type definitions will be placed in the `./dist` directory.
+To build the ES6 and UMD distribution, use the following command.
+All libraries and type definitions will be placed inside the `./dist` directory.
 
-_Note: This will firs **clean** the `./dist` directory._
+_Note: This will first **clean** the `./dist` directory._
 ```shell
 yarn build
 ```
