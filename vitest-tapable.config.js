@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import { jestToViPlugin } from './src/interop/jest-to-vi-plugin.js';
-import { fixupTapableTestsPlugin } from './interop/fixup-tapable-tests-plugin.js';
+import { fixupTapableTestsPlugin } from './src/interop/fixup-tapable-tests-plugin.js';
 
 export default defineConfig({
   test: {
