@@ -7,17 +7,28 @@ your architecture will become highly extensible and loosely coupled.
 
 Code-Extend leverages Typescript, giving your hooks
 compile-time type checking and automatic code completion.
-This includes types for all hooks, taps, calls, contexts,
-filter data, and interceptors!
+Type safety includes all hooks, taps, calls, contexts,
+filter data, and interceptors.
 
 # Usage Overview
+## Installing
 ```shell
-yarn add 'code-extend'
-npm install 'code-extend'
+yarn add code-extend
+npm install code-extend
 ```
-
+## Basic Usage
 ```shell
+import {createSyncHook} from 'code-extend'
+
 const hook = createSyncHook()
+hook.tap(message => { console.log(message) })
+hook.call('hello')
+```
+With type safety
+```shell
+const hook = createSyncHook<[message:string]>()
+hook.tap(message => { console.log(message) })
+hook.call('hello')
 ```
 
 # Motivation
@@ -33,7 +44,7 @@ manage the topology and behavior of the event bus.
 * Typesafe hooks and interceptors
 * Custom error handling
 * Call filtering
-* Synchronous and asynchronous
+* Synchronous and asynchronous hooks
 * Variety of hook topologies
 * Written from the ground up using ES6 and composable functions
 * Fully tested
@@ -87,15 +98,16 @@ syncHook.tap((name, age) => console.log('The hook was called: ' + message + ' ' 
 syncHook.call('Woolly', 5)
 ```
 
-One named argument with return type (using `()=>return` instead of `[]`)
+One named argument with return type. When specifying return types, use the function style `()=>return` 
+instead of the list style `[]`.
 ```ts
-const syncHook = createSyncHook<(message:string)=>void>()
-syncHook.tap(message => console.log('The hook was called: ' + message))
+const syncHook = createSyncHook<(message:string)=>string>({type: 'waterfall'})
+syncHook.tap(message => { console.log('The hook was called: ' + message); return message })
 syncHook.call('Hello')
 ```
 _note: Hook return types are only applicable to waterfall and bail hooks._
 
-## Untyped, named arguments 
+## Untyped named arguments 
 This is the Tapable style, and **not recommended**.
 
 ```ts
@@ -105,6 +117,14 @@ syncHook.call('Hello')
 ```
 
 ## Error handling
+There are three models of error handling.
+
+| Model  | Description                                                                    |
+|--------|--------------------------------------------------------------------------------|
+| Log    | Log the error / Ignore the return value / Continue to call the next tap        |
+| Ignore | Do not log the error / Ignore the return value / Continue to call the next tap |
+| Throw  | Throw an exception / Do not call any more taps                                 |
+
 
 ```ts
 const syncHook = createSyncHook<[message: string]>({onError: 'log'})
@@ -257,19 +277,18 @@ const hook = createSyncHook<()=>string>()
 const result = hook.call()
 ```
 
-
-## Overriding Defaults
-If you would like to change the default behavior of a hook, you can simply override.
-```ts
-import {createAsyncHook as createAsyncHook2} from 'async_hooks'
-import {CreateHookOptions} from './types'
-
-export function createAsyncHook(opts: CreateHookOptions) {
-  return createAsyncHook2(Object.assign({type: 'waterfall', reverse: true}, opts))
-}
-```
-
 # Reference
+
+## Hook Parameters
+There are four parameters that are used to indicate the hook types.
+createSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>
+
+| Parameter | Description                                                                                                                                           | Default                          |
+|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|
+| PARAMS    | Specifies the call and hook callback parameters. Can use a function style or list style syntax.                                                       | any parameters / any return type |
+| CONTEXT   | The type to use when requesting a custom context to be provided in the tap callback.                                                                  | any context                      |
+| TAPDATA   | Each tap can store a custom data object used for filtering calls.                                                                                     | any data                         |
+| HOOKTYPE  | The type of hook, and the same value that is specified in the hook creation object. This redundant parameter is needed due to Typescript limitations. | series                           |
 
 ## Hook Types
 

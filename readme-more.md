@@ -21,3 +21,15 @@ const myHook = createHook()
 await myHook.call()
 ```
 This way, if we ever decide to go async, we can just leave the code as is.
+
+
+# Overriding Defaults
+If you would like to change the default behavior of a hook, you can simply override.
+```ts
+import {createAsyncHook as createAsyncHook2} from 'async_hooks'
+import {CreateHookOptions} from './types'
+
+export function createAsyncHook(opts: CreateHookOptions) {
+  return createAsyncHook2(Object.assign({type: 'waterfall', reverse: true}, opts))
+}
+```
