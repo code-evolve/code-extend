@@ -1,12 +1,21 @@
+/*
+Copyright 2024 TwelveTone LLC
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 // Provide class for creating hooks using `new`, and conform to the Tapable API
 
 import {
   Call2Opts, CallReturnType, CallType, FnInfo, HookCallback, HookType, InterceptOptions,
   SyncHook as ISyncHook, AsyncHook as IAsyncHook, TapOptions, UntapHookFn, HookCallbackAsync, TapOptionsAsync, HookInfo, TapOptionsPromise, HookCallbackPromise
-} from '../src/types'
+} from '../types'
 
-export {MultiHook} from '../src/multihook'
-import {createAsyncHook, createSyncHook} from '../src'
+export {MultiHook} from '../multihook'
+import {createAsyncHook, createSyncHook} from '../'
 
 abstract class SyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookType> implements ISyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
   call(...args: CallType<PARAMS>): CallReturnType<PARAMS, HOOKTYPE> {

@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config';
-import { jestToViPlugin } from './interop/jest-to-vi-plugin.js';
+import { jestToViPlugin } from './src/interop/jest-to-vi-plugin.js';
 import { fixupTapableTestsPlugin } from './interop/fixup-tapable-tests-plugin.js';
 
 export default defineConfig({
@@ -15,7 +15,6 @@ export default defineConfig({
     testTimeout: 15000
   },
   plugins: [
-    // typescript(),
     fixupTapableTestsPlugin(),
     jestToViPlugin(),
   ]
