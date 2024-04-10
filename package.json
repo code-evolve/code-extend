@@ -12,7 +12,6 @@
     "hook",
     "code-evolve",
     "twelvetone",
-    "code extend",
     "extend"
   ],
   "version": "0.0.1-beta.2",
@@ -22,21 +21,26 @@
   "scripts": {
     "test": "vitest run",
     "testc": "vitest",
-    "build": "vite build && yarn build:types",
-    "build:types": "tsc --project tsconfig.build.json || vite-node bin/create-dts.ts",
-    "package": "yarn build && yarn test && yarn pack --dry-run"
+    "build": "vite build && yarn build:types && yarn build:lic",
+    "build:types": "tsc --project tsconfig.build.json; yarn vite-node bin/create-dts.ts",
+    "build:lic": "license-check-and-add add",
+    "dry": "yarn build && yarn test && yarn pack --dry-run",
+    "prepack": "yarn build && yarn test"
   },
   "devDependencies": {
-    "rollup-plugin-dts": "^6.1.0",
+    "@rollup/pluginutils": "^5.1.0",
+    "license-check-and-add": "^4.0.5",
     "typescript": "^5.4.4",
+    "vite-node": "^1.4.0",
     "vitest": "^1.4.0",
     "vue": "^3.4.21"
   },
   "files": [
     "dist",
-    "samples"
+    "samples",
+    "!samples/ideal*"
   ],
-  "runkitExampleFilename": "samples/example.js",
+  "runkitExampleFilename": "samples/example.cjs",
   "license": "MIT",
   "packageManager": "yarn@4.1.1"
 }
