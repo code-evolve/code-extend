@@ -1,3 +1,9 @@
+# 0.0.1-beta.5
+
+- fix: Fix interop types
+- docs: Update readme
+- docs: Update examples
+
 # 0.0.1-beta.4
 
 - task: Refactor types
