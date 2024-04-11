@@ -2,12 +2,13 @@
 Code-Extend is a framework for enabling a codebase to integrate
 plugins, addons, and extensions.
 
-By using a variety of customizable hook topologies,
+By using a variety of customizable hook topologies, 
+and extensive set of configurations,
 your architecture will become highly extensible and loosely coupled.
 
-Code-Extend leverages Typescript, giving your hooks
-compile-time type checking and automatic code completion.
-Type safety includes all hooks, taps, calls, contexts,
+Code-Extend leverages `Typescript`, empowering your development
+with compile-time type checking and automatic code completion.
+This type safety includes all hooks, taps, calls, contexts,
 filter data, and interceptors.
 
 # Usage Overview
@@ -17,6 +18,8 @@ yarn add code-extend
 npm install code-extend
 ```
 ## Basic Usage
+
+No type safety
 ```shell
 import {createSyncHook} from 'code-extend'
 
@@ -37,10 +40,13 @@ The standard Node `EventEmitter` has a many limitations:
 It is inherently synchronous, it is not typed, and it
 disregards the return value of listeners.
 
-The Code-Extend library solves these issues, while also offering additional features to
-manage the topology and behavior of the event bus.
+Other libraries, such as `Tapable`, 
+are limited in their functionality.
 
-# Features
+The Code-Extend library solves these issues, while also offering additional features to
+manage the topology and behavior of the system.
+
+# Features and Benefits
 * Typesafe hooks and interceptors
 * Custom error handling
 * Call filtering
@@ -68,44 +74,38 @@ asyncHook.tap(async message => console.log('The hook was called:' + message))
 await asyncHook.call('Hello')
 ```
 
-## Typed arguments
+## Typed parameters
 
-No arguments
+No callback parameters
 ```ts
 const syncHook = createSyncHook<[]>()
 syncHook.tap(() => console.log('The hook was called'))
 syncHook.call()
 ```
 
-One unnamed argument
+One unnamed callback parameter
 ```ts
 const syncHook = createSyncHook<[string]>()
 syncHook.tap(message => console.log('The hook was called: ' + message))
 syncHook.call('Hello')
 ```
 
-One named argument
-```ts
-const syncHook = createSyncHook<[message:string]>()
-syncHook.tap(message => console.log('The hook was called: ' + message))
-syncHook.call('Hello')
-```
-
-Two named arguments
+Two named callback parameter
 ```ts
 const syncHook = createSyncHook<[name:string, age:number]>()
 syncHook.tap((name, age) => console.log('The hook was called: ' + message + ' ' + age))
 syncHook.call('Woolly', 5)
 ```
 
-One named argument with return type. When specifying return types, use the function style `()=>return` 
-instead of the list style `[]`.
+One named callback parameter with a return type. When specifying return types, 
+use the function style `(arg1, arg2)=>returnValue` 
+instead of the list style `[arg1, arg2]`.
 ```ts
 const syncHook = createSyncHook<(message:string)=>string>({type: 'waterfall'})
 syncHook.tap(message => { console.log('The hook was called: ' + message); return message })
-syncHook.call('Hello')
+const result = syncHook.call('Hello')
 ```
-_note: Hook return types are only applicable to waterfall and bail hooks._
+> Note: _Hook and call return types are only applicable to waterfall and bail hooks._
 
 ## Untyped named arguments 
 This is the Tapable style, and **not recommended**.
@@ -117,7 +117,7 @@ syncHook.call('Hello')
 ```
 
 ## Error handling
-There are three models of error handling.
+There are three models of handling errors that occur in tap callback.
 
 | Model  | Description                                                                    |
 |--------|--------------------------------------------------------------------------------|
@@ -280,15 +280,15 @@ const result = hook.call()
 # Reference
 
 ## Hook Parameters
-There are four parameters that are used to indicate the hook types.
-createSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>
+There are four parameters that are used to indicate the Typescript types.
+createSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>()
 
-| Parameter | Description                                                                                                                                           | Default                          |
-|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|
-| PARAMS    | Specifies the call and hook callback parameters. Can use a function style or list style syntax.                                                       | any parameters / any return type |
-| CONTEXT   | The type to use when requesting a custom context to be provided in the tap callback.                                                                  | any context                      |
-| TAPDATA   | Each tap can store a custom data object used for filtering calls.                                                                                     | any data                         |
-| HOOKTYPE  | The type of hook, and the same value that is specified in the hook creation object. This redundant parameter is needed due to Typescript limitations. | series                           |
+| Parameter | Description                                                                                                                                                      | Default                          |
+|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|
+| PARAMS    | Specifies the call and tap callback parameters. This can use function style or list style syntax.                                                                | any parameters / any return type |
+| CONTEXT   | The type to use when requesting a custom context to be provided in the tap callback.                                                                             | any type                         |
+| TAPDATA   | Each tap can store a custom data object used for filtering calls.                                                                                                | any type                         |
+| HOOKTYPE  | The type of hook; This should be the same value that is specified in the hook creation object. This redundant parameter is needed due to Typescript limitations. | 'series'                         |
 
 ## Hook Types
 

@@ -24,7 +24,7 @@ test('Async hooks', async () => {
     callback(null)
   })
 
-  await asyncHook.call('Hello') // All taps called in parallel by default
+  await asyncHook.call('Hello') // All taps called in series by default
 })
 
 test('Async hook with options', async () => {
