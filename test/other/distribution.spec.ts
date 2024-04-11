@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 // noinspection DuplicatedCode
 
 import {expect, suite, test, vi} from 'vitest'
-import {createSyncHook} from '../../src'
+import {ITapableAsyncHook, ITapableSyncHook} from '../../src/interop/tapable-interop'
 
 test('distribution - ES6', async () => {
   const {createSyncHook} = await import ('../../dist')
@@ -43,7 +43,7 @@ test('example', async () => {
 suite('Tapable interop', () => {
   test('SyncHook', async () => {
     const {Interop} = await import ('../../dist')
-    const hook = new Interop.SyncHook(['message'])
+    const hook = new Interop.SyncHook(['message']) as ITapableSyncHook
     const spy = vi.fn()
     hook.tap('h1', spy)
     hook.call("1")
@@ -52,7 +52,7 @@ suite('Tapable interop', () => {
 
   test('AsyncHook', async () => {
     const {Interop} = await import ('../../dist')
-    const hook = new Interop.AsyncSeriesHook(['message'])
+    const hook = new Interop.AsyncSeriesHook(['message']) as ITapableAsyncHook
     const spy = vi.fn()
     hook.tap('h1', spy)
     expect(hook.call).to.be.undefined

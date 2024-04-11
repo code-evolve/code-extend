@@ -147,7 +147,7 @@ export interface AsyncHook<PARAMS extends FnInfo = undefined, CONTEXT = any, TAP
   call2(opts?: Call2Opts<PARAMS, CONTEXT, TAPDATA>): Promise<CallReturnType<PARAMS, HOOKTYPE>>
 
   // Same as AsyncHook.tapPromise
-  tap<TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE>>
+  tap<TAPOPTS extends TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE>>
   (optsOrCallback: TAPOPTS | HookCallbackPromise<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
 
   tapPromise<TAPOPTS extends TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE>>

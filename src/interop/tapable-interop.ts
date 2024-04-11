@@ -17,7 +17,38 @@ import {
 export {MultiHook} from '../multihook'
 import {createAsyncHook, createSyncHook} from '../'
 
-abstract class SyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookType> implements ISyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+export type ITapableHook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined>
+  = ITapableSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> | ITapableAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>
+
+export type ITapableSyncHook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined> = Omit<ISyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>, 'tap' | 'withOptions'> & {
+  tap<TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE>>
+  (nameOrOpts: string | TAPOPTS, callback: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
+
+  promise(): Promise<any>
+
+  callAsync(resolve: Function): void
+
+  withOptions(options: any): ITapableSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>
+}
+
+export type ITapableAsyncHook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined> = Omit<IAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>, 'tap' | 'tapPromise' | 'tapAsync' | 'withOptions'> & {
+  tap<TAPOPTS extends TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE>>
+  (nameOrOpts: string | TAPOPTS, callback: HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
+
+  tapPromise<TAPOPTS extends TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE>>
+  (nameOrOpts: string | TAPOPTS, callback: HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
+
+  tapAsync<TAPOPTS extends TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE>>
+  (nameOrOpts: string | TAPOPTS, callback: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
+
+  withOptions(options: any): ITapableAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>
+
+  promise(...args: CallType<PARAMS>): Promise<CallReturnType<PARAMS, HOOKTYPE>>
+
+  callAsync(...args: [...args: CallType<PARAMS>, callback: Function]): void
+}
+
+abstract class SyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookType> implements ITapableSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
   call(...args: CallType<PARAMS>): CallReturnType<PARAMS, HOOKTYPE> {
     return undefined
   }
@@ -35,7 +66,7 @@ abstract class SyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE exten
   }
 
   tap<TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE>>
-  (callbackOrOpts: TAPOPTS | HookCallbackSync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
+  (nameOrOpts: string | TAPOPTS, callback: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
     return () => {
     }
   }
@@ -56,12 +87,12 @@ abstract class SyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE exten
   callAsync(resolve: Function) {
   }
 
-  withOptions(options: any): ISyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+  withOptions(options: any): ITapableSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
     return this
   }
 }
 
-class AsyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookType> implements IAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+class AsyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookType> implements ITapableAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
   call(...args: CallType<PARAMS>): Promise<CallReturnType<any[], undefined>> {
     return undefined
   }
@@ -78,18 +109,20 @@ class AsyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookT
     return false
   }
 
-  tap<TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE>>
-  (callbackOrOpts: TAPOPTS | HookCallbackPromise<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
+  tap<TAPOPTS extends TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE>>
+  (nameOrOpts: string | TAPOPTS, callback: HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
     return () => {
     }
   }
 
-  tapPromise<TAPOPTS extends TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE>>(optsOrCallback: HookCallbackPromise<PARAMS, void, HOOKTYPE, TAPOPTS> | TAPOPTS, callback?: HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
+  tapPromise<TAPOPTS extends TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE>>
+  (nameOrOpts: string | TAPOPTS, callback: HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
     return () => {
     }
   }
 
-  tapAsync<TAPOPTS extends TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE>>(optsOrCallback: HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS> | TAPOPTS, callback?: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
+  tapAsync<TAPOPTS extends TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE>>
+  (nameOrOpts: string | TAPOPTS, callback: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
     return () => {
     }
   }
@@ -104,13 +137,15 @@ class AsyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookT
   setInfo(info: Partial<HookInfo>) {
   }
 
-  async promise(): Promise<any> {
+  promise(...args: CallType<PARAMS>): Promise<CallReturnType<PARAMS, HOOKTYPE>> {
+    return Promise.resolve(undefined)
   }
 
-  callAsync(resolve: Function) {
+  callAsync(...args: [...args: CallType<PARAMS>, callback: Function]): void {
+
   }
 
-  withOptions(options: any): IAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+  withOptions(options: any): ITapableAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
     return this
   }
 }
@@ -178,15 +213,6 @@ export class AsyncSeriesBailHook<PARAMS extends FnInfo = undefined, CONTEXT = vo
   }
 }
 
-/**
- * Methods not included in ISyncHook
- */
-interface ITapableExtra {
-  promise(): Promise<any>
-
-  callAsync(resolve: Function): void
-}
-
 function createSyncProxy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookType>(that: any, hookArgs: string[], name: string | undefined, type: HOOKTYPE) {
   const hook = createSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>({
     name,
@@ -194,7 +220,7 @@ function createSyncProxy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE exten
     type,
   })
 
-  return new Proxy<ISyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> & ITapableExtra>(that, {
+  return new Proxy<ITapableSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>>(that, {
     get(target, name) {
       switch (name) {
         case 'tap':
@@ -246,7 +272,7 @@ function createAsyncProxy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE exte
     onError: 'throw'
   })
 
-  return new Proxy<IAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> & ITapableExtra>(that, {
+  return new Proxy<ITapableAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>>(that, {
     get(target, name) {
       switch (name) {
         case 'tap':
