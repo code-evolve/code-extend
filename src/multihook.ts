@@ -7,31 +7,30 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-import {AsyncHook, FnInfo, Hook, HookCallbackSync, HookCallbackAsync, HookInfo, HookType, InterceptOptions, SyncHook, TapOptionsSync, TapOptionsAsync} from './index'
+import {AsyncHook, FnInfo, Hook, HookCallbackSync, HookCallbackAsync, HookInfo, HookType, InterceptOptions, SyncHook, TapOptionsSync, TapOptionsAsync, HookCallbackPromise, TapOptionsPromise} from './index'
 
-export class MultiHook<PARAMS extends FnInfo = undefined, CONTEXT = void, TAPDATA = any, HOOKTYPE extends HookType = 'parallel'> {
+export class MultiHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = any, HOOKTYPE extends HookType | undefined = undefined> {
   hooks: Hook[] = []
   name?: string
-  _options: {}
 
   constructor(hooks: Hook[], name?: string) {
     this.hooks = hooks
     this.name = name
   }
 
-  tap(opts: TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE>, callback: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE>) {
+  tap<TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE>>(opts: TAPOPTS, callback?: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>) {
     this.hooks.forEach(it => {
       (it as SyncHook).tap(opts, callback)
     })
   }
 
-  tapPromise(opts: TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE>, callback: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE>) {
+  tapPromise<TAPOPTS extends TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE>>(opts: TAPOPTS, callback: HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>) {
     this.hooks.forEach(it => {
       (it as AsyncHook).tapPromise(opts, callback)
     })
   }
 
-  tapAsync(opts: TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE>, callback: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE>) {
+  tapAsync<TAPOPTS extends TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE>>(opts: TAPOPTS, callback: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>) {
     this.hooks.forEach(it => {
       (it as AsyncHook).tapAsync(opts, callback)
     })

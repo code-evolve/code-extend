@@ -11,7 +11,7 @@ import {CallType, FnInfo, HookCallbackSync, HookCallbackAsync, HookCallbackPromi
 
 let nextHookId = 1
 
-export function parseParams<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType, TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE> = {}, TAPDATA = any>
+export function parseParams<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType | undefined, TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE> = {}, TAPDATA = any>
 (
   callbackType: 'sync' | 'promise' | 'async',
   optsOrCallback: TAPOPTS
@@ -26,7 +26,7 @@ export function parseParams<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends Hoo
   if (typeof optsOrCallback === 'function') {
     _callback = optsOrCallback as any
     useContext = false
-    data = undefined
+    data = undefined as any
     name = 'Unnamed Hook ' + nextHookId++
     reverse = false
   } else {
@@ -72,7 +72,7 @@ export function handleException(onError: HookErrorAction, e: unknown) {
  * @param context
  * @param params
  */
-export function generateParams<PARAMS extends FnInfo = any[], CONTEXT = any>(info: TapInfo<PARAMS, CONTEXT, undefined, any>, context: CONTEXT, params: CallType<PARAMS>): ParamType<PARAMS, CONTEXT> {
+export function generateParams<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE extends HookType | undefined = undefined>(info: TapInfo<PARAMS, CONTEXT, HOOKTYPE, any>, context: CONTEXT, params: CallType<PARAMS>): ParamType<PARAMS, CONTEXT> {
   if (info.useContext) {
     return [context, ...params] as any
   } else {

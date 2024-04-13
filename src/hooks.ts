@@ -29,7 +29,7 @@ import {
 import {generateParams, handleException, parseParams} from './util'
 import {removeOne} from './array'
 
-export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = any, HOOKTYPE extends HookType = undefined>
+export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = any, HOOKTYPE extends HookType | undefined = undefined>
 (opts?: CreateHookOptions): SyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
   const {
     interceptors,
@@ -126,7 +126,7 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
             handleException(onError, e)
           }
         }
-        return undefined
+        return undefined as any
       }
       case 'waterfall': {
         let value = args.length > 0 ? args[0] : undefined
@@ -144,13 +144,13 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
           try {
             const result = info.fn.apply(undefined, generateParams(info, context, args))
             if (result !== undefined) {
-              return undefined
+              return undefined as any
             }
           } catch (e: any) {
             handleException(onError, e)
           }
         }
-        return undefined
+        return undefined as any
       }
       case 'loop': {
         let loop = true
@@ -169,7 +169,7 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
             }
           }
         }
-        return undefined
+        return undefined as any
       }
     }
   }
@@ -183,9 +183,9 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
   }
 }
 
-export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType = undefined>
+export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = any, HOOKTYPE extends HookType | undefined = undefined>
 (opts?: CreateHookOptions):
-  AsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+    AsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
   const {
     callbacks,
     onError,
@@ -199,7 +199,7 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
     interceptTap,
     interceptUntap,
     interceptLoop,
-  } = useInterceptors()
+  } = useInterceptors<PARAMS, CONTEXT, HOOKTYPE, TAPDATA>()
 
   let _info: HookInfo = {
     type: Array.isArray(opts) ? 'series' : opts?.type ?? 'series',
@@ -232,7 +232,7 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
     if (typeof options === 'string') {
       options = {name: options}
     }
-    Object.apply(me, options)
+    Object.apply(me, options as any)
     return me
   }
 
@@ -253,8 +253,11 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
 
   function tapAsync<TAPOPTS extends TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE>>
   (optsOrCallback: TAPOPTS | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
-    const cb = callback ??
-      (typeof optsOrCallback === 'function' ? optsOrCallback : optsOrCallback.handler)
+    const cb: Function | undefined = callback ??
+        (typeof optsOrCallback === 'function' ? optsOrCallback : optsOrCallback.handler)
+    if (!cb) {
+      throw new Error('No callback was provided')
+    }
 
     const callbackAdapter = async (...args: ParamType<PARAMS, CONTEXT>) => {
       return new Promise<HookReturnType<PARAMS, HOOKTYPE>>((resolve, reject) => {
@@ -275,9 +278,9 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
       return tapPromise(callbackAdapter as any)
     } else {
       const optsAdapter = Object.assign(
-        {},
-        optsOrCallback,
-        {handler: callbackAdapter}
+          {},
+          optsOrCallback,
+          {handler: callbackAdapter}
       )
       return tapPromise(optsAdapter as any, callbackAdapter as any)
     }
@@ -340,7 +343,7 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
           return await Promise.any(promises)
         } catch (e) {
           handleException(onError, e)
-          return undefined
+          return undefined as any
         }
       }
       case 'loop': {
@@ -360,9 +363,12 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = any, TAPDATA = 
             handleException(onError, e)
           }
         }
-        return undefined
+        return undefined as any
       }
+      default:
+        throw new Error('Unexpected hook type')
     }
+    return undefined as any
   }
 
   function intercept(opts: InterceptOptions<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>) {
@@ -393,7 +399,7 @@ async function wrappedPromise<T = any>(promise: Promise<T>, onError: HookErrorAc
   }
 }
 
-function useBasicHook<CONTEXT, TAPDATA, HOOKTYPE extends HookType>(opts?: CreateHookOptions) {
+function useBasicHook<CONTEXT, TAPDATA, HOOKTYPE extends HookType | undefined>(opts?: CreateHookOptions) {
   const callbacks: TapInfo<any, CONTEXT, HOOKTYPE, TAPDATA>[] = []
   const onError: HookErrorAction = Array.isArray(opts) ? 'log' : opts?.onError ?? 'log'
 
@@ -401,7 +407,7 @@ function useBasicHook<CONTEXT, TAPDATA, HOOKTYPE extends HookType>(opts?: Create
    * Return callbacks, taking into account interceptors, filters, and reverse settings
    * @param filter
    */
-  function getActiveCallbacks(filter: Function) {
+  function getActiveCallbacks(filter?: Function) {
     let items = opts?.reverse ? callbacks.slice().reverse() : callbacks
     if (filter) {
       items = items.filter(it => filter(it.data))
@@ -421,7 +427,7 @@ function useBasicHook<CONTEXT, TAPDATA, HOOKTYPE extends HookType>(opts?: Create
   }
 }
 
-function useInterceptors<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType, TAPDATA>() {
+function useInterceptors<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType | undefined, TAPDATA>() {
   const interceptors: InterceptOptions<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>[] = []
   const ERROR_MESSAGE = 'An interceptor threw an exception'
   return {
