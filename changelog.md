@@ -1,3 +1,8 @@
+# 0.0.1-beta.6
+
+- fix: Update types
+- task: Update vitest, vitenode
+
 # 0.0.1-beta.5
 
 - fix: Fix interop types
