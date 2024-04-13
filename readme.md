@@ -3,13 +3,13 @@ Code-Extend is a framework for enabling a codebase to integrate
 plugins, addons, and extensions.
 
 By using a variety of customizable hook topologies, 
-and extensive set of configurations,
+and a comprehensive set of configurable options,
 your architecture will become highly extensible and loosely coupled.
 
 Code-Extend leverages `Typescript`, empowering your development
-with compile-time type checking and automatic code completion.
+with compile-time type checking and code completion.
 This type safety includes all hooks, taps, calls, contexts,
-filter data, and interceptors.
+tap data, and interceptors.
 
 # Usage Overview
 ## Installing
@@ -19,17 +19,18 @@ npm install code-extend
 ```
 ## Basic Usage
 
-No type safety
+With type safety
+```shell
+const hook = createSyncHook<[message:string]>()
+hook.tap(message => { console.log(message) })
+hook.call('hello')
+```
+
+Without type safety
 ```shell
 import {createSyncHook} from 'code-extend'
 
 const hook = createSyncHook()
-hook.tap(message => { console.log(message) })
-hook.call('hello')
-```
-With type safety
-```shell
-const hook = createSyncHook<[message:string]>()
 hook.tap(message => { console.log(message) })
 hook.call('hello')
 ```
