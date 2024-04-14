@@ -26,7 +26,7 @@
     "build:types": "tsc --project tsconfig.build.json; yarn vite-node bin/create-dts.ts",
     "build:lic": "license-check-and-add add",
     "dry": "yarn build && yarn test && yarn pack --dry-run",
-    "prepack": "yarn build && yarn test"
+    "xprepack": "yarn build && yarn test"
   },
   "devDependencies": {
     "@rollup/pluginutils": "^5.1.0",
