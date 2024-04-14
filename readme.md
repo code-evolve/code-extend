@@ -21,6 +21,8 @@ npm install code-extend
 
 With type safety
 ```shell
+import {createSyncHook} from 'code-extend'
+
 const hook = createSyncHook<[message:string]>()
 hook.tap(message => { console.log(message) })
 hook.call('hello')
@@ -51,14 +53,14 @@ manage the topology and behavior of the system.
 * Typesafe hooks and interceptors
 * Custom error handling
 * Call filtering
-* Synchronous and asynchronous hooks
+* Synchronous and asynchronous hooks using interchangeable API
 * Variety of hook topologies
 * Written from the ground up using ES6 and composable functions
 * Fully tested
 * Lightning fast
 * Tiny footprint
 * No external dependencies
-* Full interop with the Tapable library
+* Interop with the `Tapable` library
 
 # Usage
 
@@ -91,7 +93,7 @@ syncHook.tap(message => console.log('The hook was called: ' + message))
 syncHook.call('Hello')
 ```
 
-Two named callback parameter
+Two named callback parameters
 ```ts
 const syncHook = createSyncHook<[name:string, age:number]>()
 syncHook.tap((name, age) => console.log('The hook was called: ' + message + ' ' + age))
@@ -99,8 +101,8 @@ syncHook.call('Woolly', 5)
 ```
 
 One named callback parameter with a return type. When specifying return types, 
-use the function style `(arg1, arg2)=>returnValue` 
-instead of the list style `[arg1, arg2]`.
+use the `function style` `(arg1, arg2)=>returnValue` 
+instead of the `list style` `[arg1, arg2]`.
 ```ts
 const syncHook = createSyncHook<(message:string)=>string>({type: 'waterfall'})
 syncHook.tap(message => { console.log('The hook was called: ' + message); return message })
@@ -109,7 +111,7 @@ const result = syncHook.call('Hello')
 > Note: _Hook and call return types are only applicable to waterfall and bail hooks._
 
 ## Untyped named arguments 
-This is the Tapable style, and **not recommended**.
+This uses the Tapable style, and **not recommended**.
 
 ```ts
 const syncHook = createSyncHook(['message'])
@@ -118,13 +120,14 @@ syncHook.call('Hello')
 ```
 
 ## Error handling
-There are three models of handling errors that occur in tap callback.
+There are three ways to handle errors that occur in the tap callback.
+They are configured per-hook using the `onError` property.
 
 | Model  | Description                                                                    |
 |--------|--------------------------------------------------------------------------------|
-| Log    | Log the error / Ignore the return value / Continue to call the next tap        |
-| Ignore | Do not log the error / Ignore the return value / Continue to call the next tap |
-| Throw  | Throw an exception / Do not call any more taps                                 |
+| log    | Log the error / Ignore the return value / Continue to call the next tap        |
+| ignore | Do not log the error / Ignore the return value / Continue to call the next tap |
+| throw  | Throw an exception / Do not call any more taps                                 |
 
 
 ```ts
@@ -161,10 +164,10 @@ const asyncHook = createAsyncHook<(message: string) => void>()
 asyncHook.tap(async message => console.log('Hook1 was called'))
 asyncHook.tap(async message => console.log('Hook2 was called'))
 
-// tapPromise is same as hook.tap
+// tapPromise is same as hook.tap for async hooks
 asyncHook.tapPromise(async message => console.log('Hook3 was called'))
 
-// tapAsync is the old-school callback API
+// tapAsync is the old-school callback API (error,result):void
 asyncHook.tapAsync((message, callback) => {
   console.log('Hook4 was called')
   callback(null)
@@ -195,7 +198,7 @@ was provided when the hook was tapped.
 
 Tap data is typed using the third parameter (TAPDATA) of createHook.
 ```ts
-createSyncHook<PARAMS, CONTENT, TAPDATA>()
+createSyncHook<PARAMS, CONTEXT, TAPDATA>()
 ```
 
 ```ts
@@ -219,10 +222,22 @@ test('Call filtering', () => {
 The default `hook.call` method will create an empty object
 as the context and provide it to the first hook. 
 Use the `hook.call2` method to provide your own context.
+
+Context is typed using the second parameter (CONTEXT) of createHook.
+```ts
+createSyncHook<PARAMS, CONTEXT>()
+```
+
+A tap opts-in to receiving context as the first callback parameter by
+setting the `context` property in the tap options.
+
+`call2` may be used to explicitly set the context object. 
+When using `call`, the object is initialed as an empty object.
+
 ```ts
 import {createSyncHook} from './hooks'
 
-const syncHook = createSyncHook()
+const syncHook = createSyncHook<[string], {name:string}>()
 syncHook.tap({context: true}, (context, message) => console.log(context, message))
 syncHook.call2({
   context: {name: 'Woolly'},
@@ -260,20 +275,20 @@ const result = hook.call()
 ```
 
 ```ts
-const hook = createSyncHook<() => string, void, any, 'bail'>()
+const hook = createSyncHook<() => string, void, any, 'bail'>({type:'bail'})
 // result: string
 const result = hook.call()
 ```
 
 ```ts
-const hook = createSyncHook<() => string, void, any, 'sync'>()
+const hook = createSyncHook<() => string, void, any, 'sync'>({type:'sync'})
 // result: void
 const result = hook.call()
 ```
 
 ```ts
-// This partial template param condition will not be as accurate
-const hook = createSyncHook<()=>string>()
+// This partial template parameter condition will not be as accurate
+const hook = createSyncHook<()=>string>({type: 'bail'})
 // result: string | void
 const result = hook.call()
 ```
@@ -315,6 +330,7 @@ Each hook is called in series.
 Once one hook returns a value other than `undefined`,
 `hook.call` will return that value.
 Any remaining hooks will not be called.
+Any pending async hooks will be discarded.
 
 ### loop
 Each hook is called in series.
@@ -356,17 +372,17 @@ If you are familiar with Tapable, you might find this section of interest.
 ### Implemented Functionality
 Other `Tapable` functionality may be included in a future release.
 
-| Feature | Implemented | Comment                                          |
-|---------------------|-------------|--------------------------------------------------|
-| tap                 | yes         | When async, same as `tapPromise`                 |
-| tapPromise          | yes         | Recommended to use `tap` instead                 |
-| tapAsync            | yes         |                                                  |
-| call                | yes         | Extended using `call2`                           |
-| sync                | yes         | Recommended to use `tap` instead                 |
-| context             | yes         | Can be provided in `hook.call`                   |
-| Interception        | yes         | `tap`, `untap`, `register`, and `loop`           |
-| HookMap             | yes         | We recommend using `call2({filter})` instead     |
-| Multihook           | yes         | Please check for issues using `withOptions` API  |
+| Feature | Implemented | Comment                                              |
+|---------------------|-------------|------------------------------------------------------|
+| tap                 | yes         | When async, same as `tapPromise`                     |
+| tapPromise          | yes         | Recommended to use `tap` instead                     |
+| tapAsync            | yes         |                                                      |
+| call                | yes         | Extended using `call2`                               |
+| sync                | yes         | Recommended to use `tap` instead                     |
+| context             | yes         | Can be provided in `hook.call`                       |
+| Interception        | yes         | `tap`, `untap`, `register`, and `loop`               |
+| HookMap             | yes         | We recommend using `call2({filter})` instead         |
+| Multihook           | yes         | Please check for issues when using `withOptions` API |
 
 ### Tapable Interop
 We have included an interop library that allows using `Code-Extend`
@@ -396,6 +412,7 @@ hook2.callAsync('hook1', (message, done) => { console.log(message); done() })
 ```
 
 # Developer
+
 ## Testing
 One time
 ```shell
