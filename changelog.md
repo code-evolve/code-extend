@@ -1,3 +1,8 @@
+# 0.0.1-beta.7
+
+- fix: disable prepack
+- docs: Update readme
+
 # 0.0.1-beta.6
 
 - fix: Update types
@@ -19,7 +24,7 @@
 - task: Update docs
 - fix: Remove console.log
 - docs: Add usage overview
-- docs: Add more interop info 
+- docs: Add more interop info
 
 # 0.0.1-beta.2
 
