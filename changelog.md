@@ -1,3 +1,8 @@
+# 0.0.1
+
+- fix: restore prepack
+- docs: Update readme
+
 # 0.0.1-beta.7
 
 - fix: disable prepack

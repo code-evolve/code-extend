@@ -9,13 +9,14 @@
     "typescript",
     "tapable",
     "tap",
+    "tapable",
     "hook",
     "code-evolve",
     "twelvetone",
     "extend",
     "codeextend"
   ],
-  "version": "0.0.1-beta.7",
+  "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
@@ -26,7 +27,7 @@
     "build:types": "tsc --project tsconfig.build.json; yarn vite-node bin/create-dts.ts",
     "build:lic": "license-check-and-add add",
     "dry": "yarn build && yarn test && yarn pack --dry-run",
-    "xprepack": "yarn build && yarn test"
+    "prepack": "yarn build && yarn test"
   },
   "devDependencies": {
     "@rollup/pluginutils": "^5.1.0",
