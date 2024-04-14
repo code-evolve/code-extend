@@ -20,7 +20,7 @@ npm install code-extend
 ## Basic Usage
 
 With type safety
-```shell
+```ts
 import {createSyncHook} from 'code-extend'
 
 const hook = createSyncHook<[message:string]>()
@@ -29,7 +29,7 @@ hook.call('hello')
 ```
 
 Without type safety
-```shell
+```ts
 import {createSyncHook} from 'code-extend'
 
 const hook = createSyncHook()
