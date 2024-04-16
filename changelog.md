@@ -1,3 +1,8 @@
+# 0.0.2
+
+- task: Upgrade dependencies
+- docs: Update readme
+
 # 0.0.1
 
 - fix: restore prepack
