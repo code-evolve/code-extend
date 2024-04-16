@@ -28,6 +28,15 @@ hook.tap(message => { console.log(message) })
 hook.call('hello')
 ```
 
+Async with type safety
+```ts
+import {createAsyncHook} from 'code-extend'
+
+const hook = createAsyncHook<[message:string]>()
+hook.tap(async message => { console.log(message) })
+await hook.call('hello')
+```
+
 Without type safety
 ```ts
 import {createSyncHook} from 'code-extend'
@@ -120,14 +129,14 @@ syncHook.call('Hello')
 ```
 
 ## Error handling
-There are three ways to handle errors that occur in the tap callback.
-They are configured per-hook using the `onError` property.
+There are three ways to handle errors that occur within a tap callback.
+These errors are configured per-hook using the `onError` configuration property.
 
-| Model  | Description                                                                    |
-|--------|--------------------------------------------------------------------------------|
-| log    | Log the error / Ignore the return value / Continue to call the next tap        |
-| ignore | Do not log the error / Ignore the return value / Continue to call the next tap |
-| throw  | Throw an exception / Do not call any more taps                                 |
+| Strategy | Description                                                                    |
+|----------|--------------------------------------------------------------------------------|
+| log      | Log the error / Ignore the return value / Continue to call the next tap        |
+| ignore   | Do not log the error / Ignore the return value / Continue to call the next tap |
+| throw    | Throw an exception / Do not call any more taps                                 |
 
 
 ```ts
@@ -140,21 +149,21 @@ syncHook.call('Hello') // Exception WILL be logged and second tap WILL be called
 ```
 
 ```ts
-const syncHook = createSyncHook<[message: string]>({onError: 'throw'})
-syncHook.tap((message) => {
-  throw new Error('No way!')
-})
-syncHook.tap((message) => console.log('The hook was called: ' + message))
-syncHook.call('Hello') // This WILL throw and second tap will NOT be called
-```
-
-```ts
 const syncHook = createSyncHook<[message: string]>({onError: 'ignore'})
 syncHook.tap((message) => {
   throw new Error('No way!')
 })
 syncHook.tap((message) => console.log('The hook was called: ' + message))
 syncHook.call('Hello') // Exception will NOT be logged and second tap WILL be called
+```
+
+```ts
+const syncHook = createSyncHook<[message: string]>({onError: 'throw'})
+syncHook.tap((message) => {
+  throw new Error('No way!')
+})
+syncHook.tap((message) => console.log('The hook was called: ' + message))
+syncHook.call('Hello') // This WILL throw and second tap will NOT be called
 ```
 
 ## Async hooks
@@ -165,9 +174,11 @@ asyncHook.tap(async message => console.log('Hook1 was called'))
 asyncHook.tap(async message => console.log('Hook2 was called'))
 
 // tapPromise is same as hook.tap for async hooks
+// We suggest sticking with `tap`
 asyncHook.tapPromise(async message => console.log('Hook3 was called'))
 
 // tapAsync is the old-school callback API (error,result):void
+// We suggest sticking with `tap`, and only using if you need it
 asyncHook.tapAsync((message, callback) => {
   console.log('Hook4 was called')
   callback(null)
@@ -246,25 +257,25 @@ syncHook.call2({
 ```
 
 ## Untapping
-Tapped hooks return an `Untap Function`.  Removing a `tap` is called  `untapping`.
+Removing a `tap` is called  `untapping`. Tapped hooks return an `Untap Function`.
 
 ```ts
 const syncHook = createSyncHook()
 const untap1 = syncHook.tap(() => console.log('Hook 1'))
 const untap2 = syncHook.tap(() => console.log('Hook 2'))
-syncHook.call()
+syncHook.call()  // logs "Hook 1" and "Hook 2"
 untap1()
-syncHook.call()
+syncHook.call() // logs "Hook 2"
 untap2()
-syncHook.call()
+syncHook.call() // logs nothing
 ```
 
 ## Typing `hook.call` and `hook.call2`
 There is currently an issue with Typescript that
-prevents Typescript from inferring the hook type
+prevents inferring the hook type
 unless provided with _all_ or _no_ template parameters.
 This means you need to be redundant when you want your
-waterfall hook or bail hook types to be locked in.
+waterfall hook or bail hook return values to be typed.
 
 Not a big deal, but now you know!
 
@@ -287,7 +298,7 @@ const result = hook.call()
 ```
 
 ```ts
-// This partial template parameter condition will not be as accurate
+// This partial template parameter condition will not be as accurate due to Typescript bug
 const hook = createSyncHook<()=>string>({type: 'bail'})
 // result: string | void
 const result = hook.call()
