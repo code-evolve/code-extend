@@ -1,5 +1,5 @@
 /**
- * This module generate a matching `.d.ts` file for each distributed entry point.
+ * This module generates a matching `.d.ts` file for each distributed entry point.
  * Some IDEs require it when finding types.
  */
 import {writeFileSync} from 'node:fs'
