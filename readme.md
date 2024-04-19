@@ -23,8 +23,10 @@ With type safety
 ```ts
 import {createSyncHook} from 'code-extend'
 
-const hook = createSyncHook<[message:string]>()
+const hook = createSyncHook<[string]>()
+// Typescript knows that the `tap` callback receives 1 string)
 hook.tap(message => { console.log(message) })
+// Typescript knows that the `call` method requires 1 string)
 hook.call('hello')
 ```
 
@@ -308,7 +310,8 @@ const result = hook.call()
 
 ## Hook Parameters
 There are four parameters that are used to indicate the Typescript types.
-createSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>()
+
+```createSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>()```
 
 | Parameter | Description                                                                                                                                                      | Default                          |
 |-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|
@@ -381,7 +384,6 @@ If you are familiar with Tapable, you might find this section of interest.
 * Code generated is 1/10 to 1/7 the size of `Tapable`, for a .02% performance hit.
 
 ### Implemented Functionality
-Other `Tapable` functionality may be included in a future release.
 
 | Feature | Implemented | Comment                                              |
 |---------------------|-------------|------------------------------------------------------|
