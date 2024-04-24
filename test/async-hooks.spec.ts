@@ -130,6 +130,13 @@ it('waterfall', async function () {
   expect(processed).to.equal('012')
 })
 
+it('waterfall - no taps', async function () {
+  const hook = createAsyncHook<(a: string) => string, void>({type: 'waterfall'})
+
+  const processed = await hook.call('0')
+  expect(processed).to.equal('0')
+})
+
 it('waterfall reverse', async function () {
   const hook = createAsyncHook<(a: string) => string, void>({
     type: 'waterfall',
