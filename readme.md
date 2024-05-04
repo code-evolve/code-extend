@@ -6,7 +6,7 @@ By using a variety of customizable hook topologies,
 and a comprehensive set of configurable options,
 your architecture will become highly extensible and loosely coupled.
 
-Code-Extend leverages `Typescript`, empowering your development
+Code-Extend leverages `Typescript`, supercharging your development
 with compile-time type checking and code completion.
 This type safety includes all hooks, taps, calls, contexts,
 tap data, and interceptors.
