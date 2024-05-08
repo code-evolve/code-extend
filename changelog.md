@@ -1,3 +1,7 @@
+# 0.0.5
+
+- task: Rollup types
+
 # 0.0.4
 
 - task: Add dts plugin
