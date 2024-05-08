@@ -1,3 +1,8 @@
+# 0.0.4
+
+- task: Add dts plugin
+- task: Upgrade dependencies
+
 # 0.0.3
 
 - docs: Update readme
