@@ -1,3 +1,7 @@
+# 0.0.6
+
+- fix: Fix types
+
 # 0.0.5
 
 - task: Rollup types
