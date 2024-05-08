@@ -31,9 +31,11 @@
   "devDependencies": {
     "@rollup/pluginutils": "^5.1.0",
     "license-check-and-add": "^4.0.5",
-    "vite-node": "^1.5.0",
-    "vitest": "^1.5.0",
-    "vue": "^3.4.22"
+    "typescript": "^5.4.5",
+    "vite-node": "^1.6.0",
+    "vite-plugin-dts": "^3.9.1",
+    "vitest": "^1.6.0",
+    "vue": "^3.4.27"
   },
   "files": [
     "dist",
