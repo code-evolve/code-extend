@@ -29,7 +29,7 @@ import {
 } from '../types'
 
 export {MultiHook} from '../multihook'
-import {createAsyncHook, createSyncHook} from '../'
+import {createAsyncHook, createSyncHook} from '../hooks'
 
 type AsyncCallback<E = unknown, T = any> = (err?: E, result?: T) => void
 
