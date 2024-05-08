@@ -9,4 +9,6 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 */
 export * from './hooks'
 export * from './types'
-export * as Interop from './interop/tapable-interop'
+import * as Interop from './interop/tapable-interop'
+
+export {Interop}

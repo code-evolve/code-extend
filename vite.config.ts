@@ -13,7 +13,7 @@ export default defineConfig({
   plugins: [
     dts({
       tsconfigPath: 'tsconfig.build.json',
-      rollupConfig: true,
+      // rollupTypes: true,
     })
   ]
 
