@@ -1,3 +1,9 @@
+# 0.1.0
+
+- breaking: Change parameter order of TAPDATA and CONTEXT
+- fix: Fix typo in function name
+- docs: Update docs
+
 # 0.0.6
 
 - fix: Fix types
