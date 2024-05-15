@@ -35,17 +35,17 @@ test('hook.call return type should be void except for waterfall', async () => {
   // ret:void
   //
   {
-    const hook = createSyncHook<() => string, void, any, 'series'>({type: 'series'})
+    const hook = createSyncHook<() => string, any, void, 'series'>({type: 'series'})
     const ret1 = hook.call()
     const ret2 = hook.call2()
   }
   {
-    const hook = createSyncHook<() => string, void, any, 'parallel'>({type: 'parallel'})
+    const hook = createSyncHook<() => string, any, void, 'parallel'>({type: 'parallel'})
     const ret1 = hook.call()
     const ret2 = hook.call2()
   }
   {
-    const hook = createSyncHook<() => string, void, any, 'loop'>({type: 'loop'})
+    const hook = createSyncHook<() => string, any, void, 'loop'>({type: 'loop'})
     const ret1 = hook.call()
     const ret2 = hook.call2()
   }
@@ -54,17 +54,17 @@ test('hook.call return type should be void except for waterfall', async () => {
   // ret:string
   //
   {
-    const hook = createSyncHook<() => string, void, any, 'bail'>({type: 'bail'})
+    const hook = createSyncHook<() => string, any, void, 'bail'>({type: 'bail'})
     const ret1 = hook.call()
     const ret2 = hook.call2()
   }
   {
-    const hook = createSyncHook<() => string, void, any, 'waterfall'>({type: 'waterfall'})
+    const hook = createSyncHook<() => string, any, void, 'waterfall'>({type: 'waterfall'})
     const ret1 = hook.call()
     const ret2 = hook.call2()
   }
   {
-    const hook = createAsyncHook<() => string, void, any, 'waterfall'>({type: 'waterfall'})
+    const hook = createAsyncHook<() => string, any, void, 'waterfall'>({type: 'waterfall'})
     const ret1 = await hook.call()
     const ret2 = await hook.call2()
   }

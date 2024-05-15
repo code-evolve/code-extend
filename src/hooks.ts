@@ -29,22 +29,22 @@ import {
 import {generateParams, handleException, parseParams} from './util'
 import {removeOne} from './array'
 
-export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = any, HOOKTYPE extends HookType | undefined = undefined>
-(opts?: CreateHookOptions): SyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+export function createSyncHook<PARAMS extends FnInfo, TAPDATA = any, CONTEXT = void, HOOKTYPE extends HookType | undefined = undefined>
+(opts?: CreateHookOptions): SyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE> {
   const {
     interceptors,
     interceptCall,
     interceptTap,
     interceptUntap,
     interceptLoop,
-  } = useInterceptors<PARAMS, CONTEXT, HOOKTYPE, TAPDATA>()
+  } = useInterceptors<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>()
 
   const {
     onError,
     getActiveCallbacks,
     addCallback,
     callbacks,
-  } = useBasicHook<CONTEXT, TAPDATA, HOOKTYPE>(opts)
+  } = useBasicHook<TAPDATA, CONTEXT, HOOKTYPE>(opts)
 
   let _info: HookInfo = {
     type: Array.isArray(opts) ? 'series' : opts?.type ?? 'series',
@@ -71,7 +71,7 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
   }
   return me
 
-  function withOptions(options: any): SyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+  function withOptions(options: any): SyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE> {
     if (typeof options === 'string') {
       options = {name: options}
     }
@@ -87,7 +87,7 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
 
   function tap<TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE>>
   (optsOrCallback: TAPOPTS | HookCallbackSync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>) {
-    let info = parseParams<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS, TAPDATA>('sync', optsOrCallback, callback)
+    let info = parseParams<PARAMS, TAPDATA, CONTEXT, HOOKTYPE, TAPOPTS>('sync', optsOrCallback, callback)
 
     info = interceptTap(info, callbacks)
     addCallback(info)
@@ -107,7 +107,8 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
     return call2({args})
   }
 
-  function call2(callOpts: Call2Opts<PARAMS, CONTEXT, TAPDATA> = {}): CallReturnType<PARAMS, HOOKTYPE> {
+  function call2(callOpts: Call2Opts<PARAMS, TAPDATA, CONTEXT>): CallReturnType<PARAMS, HOOKTYPE> {
+    callOpts = callOpts ?? {}
     const args = callOpts.args ?? {} as CallType<PARAMS>
     const context = callOpts.context ?? {} as CONTEXT
     const {filter} = callOpts
@@ -174,7 +175,7 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
     }
   }
 
-  function intercept(opts: InterceptOptions<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>) {
+  function intercept(opts: InterceptOptions<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>) {
     interceptors.push(opts)
 
     return () => {
@@ -183,15 +184,15 @@ export function createSyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = 
   }
 }
 
-export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = any, HOOKTYPE extends HookType | undefined = undefined>
+export function createAsyncHook<PARAMS extends FnInfo, TAPDATA = any, CONTEXT = void, HOOKTYPE extends HookType | undefined = undefined>
 (opts?: CreateHookOptions):
-    AsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+  AsyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE> {
   const {
     callbacks,
     onError,
     getActiveCallbacks,
     addCallback,
-  } = useBasicHook<CONTEXT, TAPDATA, HOOKTYPE>(opts)
+  } = useBasicHook<TAPDATA, CONTEXT, HOOKTYPE>(opts)
 
   const {
     interceptors,
@@ -199,7 +200,7 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA =
     interceptTap,
     interceptUntap,
     interceptLoop,
-  } = useInterceptors<PARAMS, CONTEXT, HOOKTYPE, TAPDATA>()
+  } = useInterceptors<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>()
 
   let _info: HookInfo = {
     type: Array.isArray(opts) ? 'series' : opts?.type ?? 'series',
@@ -228,7 +229,7 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA =
   }
   return me
 
-  function withOptions(options: Record<string, any>): AsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+  function withOptions(options: Record<string, any>): AsyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE> {
     if (typeof options === 'string') {
       options = {name: options}
     }
@@ -242,7 +243,7 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA =
 
   function tapPromise<TAPOPTS extends TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE>>
   (optsOrCallback: TAPOPTS | HookCallbackPromise<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
-    let info = parseParams<PARAMS, CONTEXT, HOOKTYPE>('promise', optsOrCallback, callback as any)
+    let info = parseParams<PARAMS, any, CONTEXT, HOOKTYPE>('promise', optsOrCallback, callback as any)
     info = interceptTap(info, callbacks)
     addCallback(info)
     return () => {
@@ -254,7 +255,7 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA =
   function tapAsync<TAPOPTS extends TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE>>
   (optsOrCallback: TAPOPTS | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>, callback?: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn {
     const cb: Function | undefined = callback ??
-        (typeof optsOrCallback === 'function' ? optsOrCallback : optsOrCallback.handler)
+      (typeof optsOrCallback === 'function' ? optsOrCallback : optsOrCallback.handler)
     if (!cb) {
       throw new Error('No callback was provided')
     }
@@ -278,9 +279,9 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA =
       return tapPromise(callbackAdapter as any)
     } else {
       const optsAdapter = Object.assign(
-          {},
-          optsOrCallback,
-          {handler: callbackAdapter}
+        {},
+        optsOrCallback,
+        {handler: callbackAdapter}
       )
       return tapPromise(optsAdapter as any, callbackAdapter as any)
     }
@@ -290,7 +291,7 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA =
     return call2({args})
   }
 
-  async function call2(callOpts: Call2Opts<PARAMS, CONTEXT, TAPDATA> = {}): Promise<CallReturnType<PARAMS, HOOKTYPE>> {
+  async function call2(callOpts: Call2Opts<PARAMS, TAPDATA, CONTEXT> = {}): Promise<CallReturnType<PARAMS, HOOKTYPE>> {
     const args = callOpts.args ?? [] as unknown as CallType<PARAMS>
     const context = callOpts.context ?? {} as CONTEXT
     const {filter} = callOpts
@@ -371,7 +372,7 @@ export function createAsyncHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA =
     return undefined as any
   }
 
-  function intercept(opts: InterceptOptions<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>) {
+  function intercept(opts: InterceptOptions<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>) {
     interceptors.push(opts)
 
     return () => {
@@ -399,8 +400,8 @@ async function wrappedPromise<T = any>(promise: Promise<T>, onError: HookErrorAc
   }
 }
 
-function useBasicHook<CONTEXT, TAPDATA, HOOKTYPE extends HookType | undefined>(opts?: CreateHookOptions) {
-  const callbacks: TapInfo<any, CONTEXT, HOOKTYPE, TAPDATA>[] = []
+function useBasicHook<TAPDATA, CONTEXT, HOOKTYPE extends HookType | undefined>(opts?: CreateHookOptions) {
+  const callbacks: TapInfo<any, TAPDATA, CONTEXT, HOOKTYPE>[] = []
   const onError: HookErrorAction = Array.isArray(opts) ? 'log' : opts?.onError ?? 'log'
 
   /**
@@ -415,7 +416,7 @@ function useBasicHook<CONTEXT, TAPDATA, HOOKTYPE extends HookType | undefined>(o
     return items
   }
 
-  function addCallback(callback: TapInfo<any, CONTEXT, HOOKTYPE, TAPDATA>) {
+  function addCallback(callback: TapInfo<any, TAPDATA, CONTEXT, HOOKTYPE>) {
     callbacks.push(callback)
   }
 
@@ -427,8 +428,8 @@ function useBasicHook<CONTEXT, TAPDATA, HOOKTYPE extends HookType | undefined>(o
   }
 }
 
-function useInterceptors<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType | undefined, TAPDATA>() {
-  const interceptors: InterceptOptions<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>[] = []
+function useInterceptors<PARAMS extends FnInfo, TAPDATA, CONTEXT, HOOKTYPE extends HookType | undefined>() {
+  const interceptors: InterceptOptions<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>[] = []
   const ERROR_MESSAGE = 'An interceptor threw an exception'
   return {
     interceptors,
@@ -461,7 +462,7 @@ function useInterceptors<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookTy
     })
   }
 
-  function interceptTap(info: TapInfo<PARAMS, CONTEXT, HOOKTYPE, TAPDATA>, callbacks: TapInfo<any, CONTEXT, HOOKTYPE, TAPDATA>[]): TapInfo<PARAMS, CONTEXT, HOOKTYPE, TAPDATA> {
+  function interceptTap(info: TapInfo<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>, callbacks: TapInfo<any, TAPDATA, CONTEXT, HOOKTYPE>[]): TapInfo<PARAMS, TAPDATA, CONTEXT, HOOKTYPE> {
     let origInfo = info
     interceptors.forEach(it => {
       try {
@@ -485,7 +486,7 @@ function useInterceptors<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookTy
     return info
   }
 
-  function interceptUntap(info: TapInfo<PARAMS, CONTEXT, HOOKTYPE, TAPDATA>) {
+  function interceptUntap(info: TapInfo<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>) {
     interceptors.forEach(it => {
       try {
         it.untap?.(info)

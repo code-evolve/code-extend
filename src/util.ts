@@ -11,13 +11,13 @@ import {CallType, FnInfo, HookCallbackSync, HookCallbackAsync, HookCallbackPromi
 
 let nextHookId = 1
 
-export function parseParams<PARAMS extends FnInfo, CONTEXT, HOOKTYPE extends HookType | undefined, TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE> = {}, TAPDATA = any>
+export function parseParams<PARAMS extends FnInfo, TAPDATA, CONTEXT, HOOKTYPE extends HookType | undefined, TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE> | TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE> = {}>
 (
   callbackType: 'sync' | 'promise' | 'async',
   optsOrCallback: TAPOPTS
-   | HookCallbackSync<PARAMS, void, HOOKTYPE, TAPOPTS> | HookCallbackPromise<PARAMS, void, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>,
- callback?: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>)
-  : TapInfo<PARAMS, CONTEXT, HOOKTYPE, TAPDATA> {
+    | HookCallbackSync<PARAMS, void, HOOKTYPE, TAPOPTS> | HookCallbackPromise<PARAMS, void, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, void, HOOKTYPE, TAPOPTS>,
+  callback?: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>)
+  : TapInfo<PARAMS, TAPDATA, CONTEXT, HOOKTYPE> {
   let _callback: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS> | undefined
   let useContext: boolean
   let data: TAPDATA
@@ -72,7 +72,7 @@ export function handleException(onError: HookErrorAction, e: unknown) {
  * @param context
  * @param params
  */
-export function generateParams<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE extends HookType | undefined = undefined>(info: TapInfo<PARAMS, CONTEXT, HOOKTYPE, any>, context: CONTEXT, params: CallType<PARAMS>): ParamType<PARAMS, CONTEXT> {
+export function generateParams<PARAMS extends FnInfo = any[], CONTEXT = any, HOOKTYPE extends HookType | undefined = undefined>(info: TapInfo<PARAMS, any, CONTEXT, HOOKTYPE>, context: CONTEXT, params: CallType<PARAMS>): ParamType<PARAMS, CONTEXT> {
   if (info.useContext) {
     return [context, ...params] as any
   } else {

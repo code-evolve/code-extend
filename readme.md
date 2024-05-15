@@ -209,14 +209,14 @@ await asyncHook.call('3') // return value is '321'
 Hooks can be filtered when called.  The caller can inspect tap data that
 was provided when the hook was tapped.
 
-Tap data is typed using the third parameter (TAPDATA) of createHook.
+Tap data is typed using the second parameter (TAPDATA) of createHook.
 ```ts
-createSyncHook<PARAMS, CONTEXT, TAPDATA>()
+createSyncHook<PARAMS, TAPDATA, CONTEXT>()
 ```
 
 ```ts
 test('Call filtering', () => {
-  const syncHook = createSyncHook<[string | number], void, string>()
+  const syncHook = createSyncHook<[string | number], string>()
   syncHook.tap({data: 'string'}, (message) => console.log('withString', message))
   syncHook.tap({data: 'number'}, (message) => console.log('withNumber', message))
   syncHook.call2({
@@ -236,9 +236,9 @@ The default `hook.call` method will create an empty object
 as the context and provide it to the first hook. 
 Use the `hook.call2` method to provide your own context.
 
-Context is typed using the second parameter (CONTEXT) of createHook.
+Context is typed using the third parameter (CONTEXT) of createHook.
 ```ts
-createSyncHook<PARAMS, CONTEXT>()
+createSyncHook<PARAMS, TAPDATA, CONTEXT>()
 ```
 
 A tap opts-in to receiving context as the first callback parameter by
@@ -288,13 +288,13 @@ const result = hook.call()
 ```
 
 ```ts
-const hook = createSyncHook<() => string, void, any, 'bail'>({type:'bail'})
+const hook = createSyncHook<() => string, any, void, 'bail'>({type:'bail'})
 // result: string
 const result = hook.call()
 ```
 
 ```ts
-const hook = createSyncHook<() => string, void, any, 'sync'>({type:'sync'})
+const hook = createSyncHook<() => string, any, void, 'sync'>({type:'sync'})
 // result: void
 const result = hook.call()
 ```
@@ -311,13 +311,13 @@ const result = hook.call()
 ## Hook Parameters
 There are four parameters that are used to indicate the Typescript types.
 
-```createSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>()```
+```createSyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>()```
 
 | Parameter | Description                                                                                                                                                      | Default                          |
 |-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|
 | PARAMS    | Specifies the call and tap callback parameters. This can use function style or list style syntax.                                                                | any parameters / any return type |
-| CONTEXT   | The type to use when requesting a custom context to be provided in the tap callback.                                                                             | any type                         |
 | TAPDATA   | Each tap can store a custom data object used for filtering calls.                                                                                                | any type                         |
+| CONTEXT   | The type to use when requesting a custom context to be provided in the tap callback.                                                                             | any type                         |
 | HOOKTYPE  | The type of hook; This should be the same value that is specified in the hook creation object. This redundant parameter is needed due to Typescript limitations. | 'series'                         |
 
 ## Hook Types

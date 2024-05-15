@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 */
 import {AsyncHook, FnInfo, Hook, HookCallbackSync, HookCallbackAsync, HookInfo, HookType, InterceptOptions, SyncHook, TapOptionsSync, TapOptionsAsync, HookCallbackPromise, TapOptionsPromise} from './index'
 
-export class MultiHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = any, HOOKTYPE extends HookType | undefined = undefined> {
+export class MultiHook<PARAMS extends FnInfo, TAPDATA = any, CONTEXT = void, HOOKTYPE extends HookType | undefined = undefined> {
   hooks: Hook[] = []
   name?: string
 
@@ -36,7 +36,7 @@ export class MultiHook<PARAMS extends FnInfo, CONTEXT = void, TAPDATA = any, HOO
     })
   }
 
-  intercept(interceptor: InterceptOptions<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>) {
+  intercept(interceptor: InterceptOptions<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>) {
     this.hooks.forEach(it => {
       it.intercept(interceptor)
     })

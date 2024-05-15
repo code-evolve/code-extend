@@ -33,12 +33,12 @@ import {createAsyncHook, createSyncHook} from '../hooks'
 
 type AsyncCallback<E = unknown, T = any> = (err?: E, result?: T) => void
 
-export type ITapableHook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType | undefined = undefined>
-    = ITapableSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> | ITapableAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>
+export type ITapableHook<PARAMS extends FnInfo = any[], TAPDATA = any, CONTEXT = any, HOOKTYPE extends HookType | undefined = undefined>
+  = ITapableSyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE> | ITapableAsyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>
 
-export type ITapableSyncHook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType | undefined = undefined> =
-    Omit<ISyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>, 'tap' | 'withOptions'>
-    & {
+export type ITapableSyncHook<PARAMS extends FnInfo = any[], TAPDATA = any, CONTEXT = any, HOOKTYPE extends HookType | undefined = undefined> =
+  Omit<ISyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>, 'tap' | 'withOptions'>
+  & {
   tap<TAPOPTS extends TapOptionsSync<PARAMS, CONTEXT, HOOKTYPE>>
   (nameOrOpts: string | TAPOPTS, callback: HookCallbackSync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
 
@@ -46,12 +46,12 @@ export type ITapableSyncHook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDA
 
   callAsync(resolve: Function): void
 
-  withOptions(options: any): ITapableSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>
+  withOptions(options: any): ITapableSyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>
 }
 
-export type ITapableAsyncHook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPDATA = any, HOOKTYPE extends HookType | undefined = undefined> =
-    Omit<IAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>, 'tap' | 'tapPromise' | 'tapAsync' | 'withOptions'>
-    & {
+export type ITapableAsyncHook<PARAMS extends FnInfo = any[], TAPDATA = any, CONTEXT = any, HOOKTYPE extends HookType | undefined = undefined> =
+  Omit<IAsyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>, 'tap' | 'tapPromise' | 'tapAsync' | 'withOptions'>
+  & {
   tap<TAPOPTS extends TapOptionsPromise<PARAMS, CONTEXT, HOOKTYPE>>
   (_nameOrOpts: string | TAPOPTS, _callback: HookCallbackPromise<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
 
@@ -61,23 +61,23 @@ export type ITapableAsyncHook<PARAMS extends FnInfo = any[], CONTEXT = any, TAPD
   tapAsync<TAPOPTS extends TapOptionsAsync<PARAMS, CONTEXT, HOOKTYPE>>
   (_nameOrOpts: string | TAPOPTS, _callback: HookCallbackAsync<PARAMS, CONTEXT, HOOKTYPE, TAPOPTS>): UntapHookFn
 
-  withOptions(_options: any): ITapableAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>
+  withOptions(_options: any): ITapableAsyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>
 
   promise(..._args: CallType<PARAMS>): Promise<CallReturnType<PARAMS, HOOKTYPE>>
 
   callAsync(..._args: [...args: CallType<PARAMS>, _callback: Function]): void
 }
 
-abstract class SyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookType | undefined> implements ITapableSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+abstract class SyncDummy<PARAMS extends FnInfo, TAPDATA, CONTEXT, HOOKTYPE extends HookType | undefined> implements ITapableSyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE> {
   call(..._args: CallType<PARAMS>): CallReturnType<PARAMS, HOOKTYPE> {
     return undefined as any
   }
 
-  call2(_opts?: Call2Opts<PARAMS, CONTEXT, TAPDATA>): CallReturnType<PARAMS, HOOKTYPE> {
+  call2(_opts?: Call2Opts<PARAMS, TAPDATA, CONTEXT>): CallReturnType<PARAMS, HOOKTYPE> {
     return undefined as any
   }
 
-  intercept(_opts: InterceptOptions<PARAMS, CONTEXT, TAPDATA, HookType>): UntapHookFn {
+  intercept(_opts: InterceptOptions<PARAMS, TAPDATA, CONTEXT, HookType>): UntapHookFn {
     return () => {
     }
   }
@@ -109,21 +109,21 @@ abstract class SyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE exten
   callAsync(_resolve: Function) {
   }
 
-  withOptions(_options: any): ITapableSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+  withOptions(_options: any): ITapableSyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE> {
     return this
   }
 }
 
-class AsyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookType | undefined> implements ITapableAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+class AsyncDummy<PARAMS extends FnInfo, TAPDATA, CONTEXT, HOOKTYPE extends HookType | undefined> implements ITapableAsyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE> {
   call(..._args: CallType<PARAMS>): Promise<CallReturnType<any[], undefined>> {
     return Promise.resolve(undefined) as any
   }
 
-  call2(_opts?: Call2Opts<PARAMS, CONTEXT, TAPDATA>): Promise<CallReturnType<PARAMS, HOOKTYPE>> {
+  call2(_opts?: Call2Opts<PARAMS, TAPDATA, CONTEXT>): Promise<CallReturnType<PARAMS, HOOKTYPE>> {
     return Promise.resolve(undefined) as any
   }
 
-  intercept(_opts: InterceptOptions<PARAMS, CONTEXT, TAPDATA, HookType>): UntapHookFn {
+  intercept(_opts: InterceptOptions<PARAMS, TAPDATA, CONTEXT, HookType>): UntapHookFn {
     return () => {
     }
   }
@@ -168,82 +168,82 @@ class AsyncDummy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookT
 
   }
 
-  withOptions(_options: any): ITapableAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE> {
+  withOptions(_options: any): ITapableAsyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE> {
     return this
   }
 }
 
-export class SyncHook<PARAMS extends FnInfo = any, CONTEXT = any, TAPDATA = any> extends SyncDummy<PARAMS, CONTEXT, TAPDATA, 'series'> {
+export class SyncHook<PARAMS extends FnInfo = any, TAPDATA = any, CONTEXT = any> extends SyncDummy<PARAMS, TAPDATA, CONTEXT, 'series'> {
   constructor(args: string[] = [], name?: string) {
     super()
-    return createSyncProxy<PARAMS, CONTEXT, TAPDATA, 'series'>(this, args, name, 'series')
+    return createSyncProxy<PARAMS, TAPDATA, CONTEXT, 'series'>(this, args, name, 'series')
   }
 }
 
-export class SyncWaterfallHook<PARAMS extends FnInfo = any, CONTEXT = any, TAPDATA = any> extends SyncDummy<PARAMS, CONTEXT, TAPDATA, 'waterfall'> {
+export class SyncWaterfallHook<PARAMS extends FnInfo = any, TAPDATA = any, CONTEXT = any> extends SyncDummy<PARAMS, TAPDATA, CONTEXT, 'waterfall'> {
   constructor(args: string[] = [], name?: string) {
     super()
-    return createSyncProxy<PARAMS, CONTEXT, TAPDATA, 'waterfall'>(this, args, name, 'waterfall')
+    return createSyncProxy<PARAMS, TAPDATA, CONTEXT, 'waterfall'>(this, args, name, 'waterfall')
   }
 }
 
-export class SyncLoopHook<PARAMS extends FnInfo = any, CONTEXT = any, TAPDATA = any> extends SyncDummy<PARAMS, CONTEXT, TAPDATA, 'loop'> {
+export class SyncLoopHook<PARAMS extends FnInfo = any, TAPDATA = any, CONTEXT = any> extends SyncDummy<PARAMS, TAPDATA, CONTEXT, 'loop'> {
   constructor(args: string[] = [], name?: string) {
     super()
-    return createSyncProxy<PARAMS, CONTEXT, TAPDATA, 'loop'>(this, args, name, 'loop')
+    return createSyncProxy<PARAMS, TAPDATA, CONTEXT, 'loop'>(this, args, name, 'loop')
   }
 }
 
-export class SyncBailHook<PARAMS extends FnInfo = any, CONTEXT = any, TAPDATA = any> extends SyncDummy<PARAMS, CONTEXT, TAPDATA, 'bail'> {
+export class SyncBailHook<PARAMS extends FnInfo = any, TAPDATA = any, CONTEXT = any> extends SyncDummy<PARAMS, TAPDATA, CONTEXT, 'bail'> {
   constructor(args: string[] = [], name?: string) {
     super()
-    return createSyncProxy<PARAMS, CONTEXT, TAPDATA, 'bail'>(this, args, name, 'bail')
+    return createSyncProxy<PARAMS, TAPDATA, CONTEXT, 'bail'>(this, args, name, 'bail')
   }
 }
 
-export class AsyncSeriesHook<PARAMS extends FnInfo = any, CONTEXT = any, TAPDATA = any> extends AsyncDummy<PARAMS, CONTEXT, TAPDATA, 'series'> {
+export class AsyncSeriesHook<PARAMS extends FnInfo = any, TAPDATA = any, CONTEXT = any> extends AsyncDummy<PARAMS, TAPDATA, CONTEXT, 'series'> {
   constructor(args: string[] = [], name?: string) {
     super()
-    return createAsyncProxy<PARAMS, CONTEXT, TAPDATA, 'series'>(this, args, name, 'series')
+    return createAsyncProxy<PARAMS, TAPDATA, CONTEXT, 'series'>(this, args, name, 'series')
   }
 }
 
-export class AsyncParallelHook<PARAMS extends FnInfo = any, CONTEXT = any, TAPDATA = any> extends AsyncDummy<PARAMS, CONTEXT, TAPDATA, 'parallel'> {
+export class AsyncParallelHook<PARAMS extends FnInfo = any, TAPDATA = any, CONTEXT = any> extends AsyncDummy<PARAMS, TAPDATA, CONTEXT, 'parallel'> {
   constructor(args: string[] = [], name?: string) {
     super()
-    return createAsyncProxy<PARAMS, CONTEXT, TAPDATA, 'parallel'>(this, args, name, 'parallel')
+    return createAsyncProxy<PARAMS, TAPDATA, CONTEXT, 'parallel'>(this, args, name, 'parallel')
   }
 }
 
-export class AsyncSeriesWaterfallHook<PARAMS extends FnInfo = any, CONTEXT = any, TAPDATA = any> extends AsyncDummy<PARAMS, CONTEXT, TAPDATA, 'waterfall'> {
+export class AsyncSeriesWaterfallHook<PARAMS extends FnInfo = any, TAPDATA = any, CONTEXT = any> extends AsyncDummy<PARAMS, TAPDATA, CONTEXT, 'waterfall'> {
   constructor(args: string[] = [], name?: string) {
     super()
-    return createAsyncProxy<PARAMS, CONTEXT, TAPDATA, 'waterfall'>(this, args, name, 'waterfall')
+    return createAsyncProxy<PARAMS, TAPDATA, CONTEXT, 'waterfall'>(this, args, name, 'waterfall')
   }
 }
 
-export class AsyncSeriesLoopHook<PARAMS extends FnInfo = any, CONTEXT = any, TAPDATA = any> extends AsyncDummy<PARAMS, CONTEXT, TAPDATA, 'loop'> {
+export class AsyncSeriesLoopHook<PARAMS extends FnInfo = any, TAPDATA = any, CONTEXT = any> extends AsyncDummy<PARAMS, TAPDATA, CONTEXT, 'loop'> {
   constructor(args: string[] = [], name?: string) {
     super()
-    return createAsyncProxy<PARAMS, CONTEXT, TAPDATA, 'loop'>(this, args, name, 'loop')
+    return createAsyncProxy<PARAMS, TAPDATA, CONTEXT, 'loop'>(this, args, name, 'loop')
   }
 }
 
-export class AsyncSeriesBailHook<PARAMS extends FnInfo = any, CONTEXT = any, TAPDATA = any> extends AsyncDummy<PARAMS, CONTEXT, TAPDATA, 'bail'> {
+export class AsyncSeriesBailHook<PARAMS extends FnInfo = any, TAPDATA = any, CONTEXT = any> extends AsyncDummy<PARAMS, TAPDATA, CONTEXT, 'bail'> {
   constructor(args: string[] = [], name?: string) {
     super()
-    return createAsyncProxy<PARAMS, CONTEXT, TAPDATA, 'bail'>(this, args, name, 'bail')
+    return createAsyncProxy<PARAMS, TAPDATA, CONTEXT, 'bail'>(this, args, name, 'bail')
   }
 }
 
-function createSyncProxy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookType | undefined>(that: any, hookArgs: string[], name: string | undefined, type: HOOKTYPE) {
-  const hook = createSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>({
+function createSyncProxy<PARAMS extends FnInfo, TAPDATA, CONTEXT, HOOKTYPE extends HookType | undefined>(that: any, hookArgs: string[], name: string | undefined, type: HOOKTYPE) {
+  const hook = createSyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>({
     name,
     args: hookArgs,
     type,
   })
 
-  return new Proxy<ITapableSyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>>(that, {
+  return new Proxy<ITapableSyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>>(that, {
     get(_, name) {
       switch (name) {
         case 'tap':
@@ -287,15 +287,15 @@ function createSyncProxy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE exten
   })
 }
 
-function createAsyncProxy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE extends HookType | undefined>(that: any, hookArgs: string[], name: string | undefined, type: HOOKTYPE) {
-  const hook = createAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>({
+function createAsyncProxy<PARAMS extends FnInfo, TAPDATA, CONTEXT, HOOKTYPE extends HookType | undefined>(that: any, hookArgs: string[], name: string | undefined, type: HOOKTYPE) {
+  const hook = createAsyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>({
     args: hookArgs,
     name,
     type,
     onError: 'throw'
   })
 
-  return new Proxy<ITapableAsyncHook<PARAMS, CONTEXT, TAPDATA, HOOKTYPE>>(that, {
+  return new Proxy<ITapableAsyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>>(that, {
     get(_, name) {
       switch (name) {
         case 'tap':
@@ -358,12 +358,12 @@ function createAsyncProxy<PARAMS extends FnInfo, CONTEXT, TAPDATA, HOOKTYPE exte
               ret.push(undefined)
             }
             hook.call.apply(undefined, ret as any)
-                .then(it => {
-                  resolver(null, it)
-                })
-                .catch(e => {
-                  resolver(e)
-                })
+              .then(it => {
+                resolver(null, it)
+              })
+              .catch(e => {
+                resolver(e)
+              })
           }
         default:
           return (hook as any)[name]
