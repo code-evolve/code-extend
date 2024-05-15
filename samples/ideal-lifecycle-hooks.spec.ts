@@ -5,7 +5,7 @@ function log(...args: any[]) {
   // log.apply(null, args)
 }
 
-export async function asyncWatest(milli: number) {
+export async function asyncWait(milli: number) {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(undefined)
@@ -47,13 +47,13 @@ test('should hook all items', async function () {
 
   const meta = Object.entries(idealLifecycleHooks.meta).map(async it => {
     calling.push(it[0])
-    await asyncWatest(10)
+    await asyncWait(10)
     it[1].call().catch(e => console.error(e))
   })
 
   const content = Object.entries(idealLifecycleHooks.content).map(async it => {
     calling.push(it[0])
-    await asyncWatest(10)
+    await asyncWait(10)
     it[1].call().catch(e => console.error(e))
   })
 
@@ -61,14 +61,14 @@ test('should hook all items', async function () {
 
   const install = Object.entries(idealLifecycleHooks.install).map(async it => {
     calling.push(it[0])
-    await asyncWatest(10)
+    await asyncWait(10)
     it[1].call().catch(e => console.error(e))
   })
   await Promise.all(install)
 
   const execute = Object.entries(idealLifecycleHooks.execute).map(async it => {
     calling.push(it[0])
-    await asyncWatest(10)
+    await asyncWait(10)
     it[1].call().catch(e => console.error(e))
   })
   await Promise.all(execute)
