@@ -1,3 +1,7 @@
+# 0.1.1
+
+- task: Upgrade dependencies
+
 # 0.1.0
 
 - breaking: Change parameter order of TAPDATA and CONTEXT
