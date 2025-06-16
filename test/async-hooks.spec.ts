@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
 import {it, expect} from 'vitest'
 import {createAsyncHook} from '../src'
-import {asyncWait} from '../../../util'
+import {asyncWait} from '@util-js'
 
 it('series', async function () {
   const hook = createAsyncHook<() => number, void>({type: 'series'})
