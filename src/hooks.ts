@@ -133,7 +133,16 @@ export function createSyncHook<PARAMS extends FnInfo, TAPDATA = any, CONTEXT = v
         let value = args.length > 0 ? args[0] : undefined
         for (const info of items) {
           try {
-            value = info.fn.apply(undefined, generateParams(info, context, [value] as any))
+            // A tap that returns nothing PASSES THE VALUE THROUGH, matching tapable. Before this
+            // fix the accumulator was overwritten unconditionally, so one silent tap turned the
+            // chain into the literal string "undefined" for every tap after it -- silently, with
+            // nothing in the stack naming the tap responsible. In a UI that renames every item to
+            // "undefined...". `undefined` is already this file's "no answer" everywhere else
+            // (bail and loop both test it), so this makes waterfall agree with its neighbours.
+            const next = info.fn.apply(undefined, generateParams(info, context, [value] as any))
+            if (next !== undefined) {
+              value = next
+            }
           } catch (e: any) {
             handleException(onError, e)
           }
@@ -144,8 +153,15 @@ export function createSyncHook<PARAMS extends FnInfo, TAPDATA = any, CONTEXT = v
         for (const info of items) {
           try {
             const result = info.fn.apply(undefined, generateParams(info, context, args))
+            // RETURN the bailed value, do not discard it. Bailing worked before this fix --
+            // later taps really were skipped -- but `call()` answered `undefined` whether the
+            // first tap answered, a later one did, or nobody did. That collapses "answered" and
+            // "declined" into one value, so a caller cannot tell them apart and the topology
+            // cannot do the one thing it exists for. The async `bail` already returned the value
+            // (see test/async-hooks.spec.ts 'bail'), so this was the two APIs disagreeing rather
+            // than a deliberate design.
             if (result !== undefined) {
-              return undefined as any
+              return result as any
             }
           } catch (e: any) {
             handleException(onError, e)
@@ -329,7 +345,11 @@ export function createAsyncHook<PARAMS extends FnInfo, TAPDATA = any, CONTEXT = 
         let value = args.length === 0 ? undefined : args[0]
         for (const info of items) {
           try {
-            value = await info.fn.apply(undefined, generateParams(info, context, args.length === 0 ? [] : [value]))
+            // Same pass-through rule as the sync waterfall above, for the same reason.
+            const next = await info.fn.apply(undefined, generateParams(info, context, args.length === 0 ? [] : [value]))
+            if (next !== undefined) {
+              value = next
+            }
           } catch (e: any) {
             handleException(onError, e)
           }
