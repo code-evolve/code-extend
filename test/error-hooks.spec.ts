@@ -18,7 +18,7 @@ describe('sync hooks - errors', () => {
   it('should log on exception by default', async function () {
     const hook = createSyncHook()
     const results = []
-    const spyLog = vi.spyOn(console, 'error')
+    const spyLog = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     hook.tap(() => {
       throw new Error('Hey')
@@ -36,7 +36,7 @@ describe('sync hooks - errors', () => {
   it('should ignore on exception', async function () {
     const hook = createSyncHook({onError: 'ignore'})
     const results = []
-    const spyLog = vi.spyOn(console, 'error')
+    const spyLog = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     hook.tap(() => {
       throw new Error('Hey')
@@ -70,7 +70,7 @@ describe('async hooks - errors', () => {
   it('should log on exception by default', async function () {
     const hook = createAsyncHook()
     const results = []
-    const spyLog = vi.spyOn(console, 'error')
+    const spyLog = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     hook.tap(async () => {
       throw new Error('Hey')
@@ -89,7 +89,7 @@ describe('async hooks - errors', () => {
   it('should ignore on exception', async function () {
     const hook = createAsyncHook({onError: 'ignore'})
     const results = []
-    const spyLog = vi.spyOn(console, 'error')
+    const spyLog = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     hook.tap(async () => {
       throw new Error('Hey')

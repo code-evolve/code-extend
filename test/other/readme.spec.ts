@@ -7,24 +7,38 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-import {test} from 'vitest'
+import {expect, test} from 'vitest'
 import {createAsyncHook, createSyncHook} from '../../src'
 
+// These transcribe the readme's examples. They used to `console.log` and assert NOTHING, so they
+// proved only that the documented code does not throw — never that it produces the documented
+// RESULT. That is how the readme's tapable-interop example survived for years while silently doing
+// nothing. Each test now records what the example would have printed and asserts it, and the
+// documented return values ('321' below) are checked rather than left in a comment.
+
 test('Async hooks', async () => {
+  const calls: string[] = []
   const asyncHook = createAsyncHook<(message: string) => void>()
-  asyncHook.tap(message => console.log('Hook1 was called'))
-  asyncHook.tap(message => console.log('Hook2 was called'))
+  asyncHook.tap(message => { calls.push('Hook1 was called') })
+  asyncHook.tap(message => { calls.push('Hook2 was called') })
 
   // tapPromise is Same as hook.tap
-  asyncHook.tapPromise(message => console.log('Hook3 was called'))
+  asyncHook.tapPromise(message => { calls.push('Hook3 was called') })
 
   // tapAsync is the old-school callback API
   asyncHook.tapAsync((message, callback) => {
-    console.log('Hook4 was called')
+    calls.push('Hook4 was called')
     callback(null)
   })
 
   await asyncHook.call('Hello') // All taps called in series by default
+
+  expect(calls).to.eql([
+    'Hook1 was called',
+    'Hook2 was called',
+    'Hook3 was called',
+    'Hook4 was called',
+  ])
 })
 
 test('Async hook with options', async () => {
@@ -38,13 +52,18 @@ test('Async hook with options', async () => {
     throw new Error('Should be ignored')
   })
   asyncHook.tap(packet => packet + '2')
-  await asyncHook.call('3') // return value is '321'
+
+  // The readme says the return value is '321': reverse order appends '2' then '1', and the
+  // throwing tap is skipped because onError is 'ignore'. Asserted rather than asserted in a comment.
+  expect(await asyncHook.call('3')).to.equal('321')
 })
 
 test('Call filtering', () => {
-  const syncHook = createSyncHook<[string | number], void, string>()
-  syncHook.tap({data: 'string'}, (message) => console.log('withString', message))
-  syncHook.tap({data: 'number'}, (message) => console.log('withNumber', message))
+  const withString: unknown[] = []
+  const withNumber: unknown[] = []
+  const syncHook = createSyncHook<[string | number], string>()
+  syncHook.tap({data: 'string'}, (message) => { withString.push(message) })
+  syncHook.tap({data: 'number'}, (message) => { withNumber.push(message) })
   syncHook.call2({
     filter: (data => data === 'string'),
     args: ['Hello']
@@ -53,4 +72,8 @@ test('Call filtering', () => {
     filter: (data => data === 'number'),
     args: [12]
   })
+
+  // Each call reaches ONLY the tap whose data the filter selected.
+  expect(withString).to.eql(['Hello'])
+  expect(withNumber).to.eql([12])
 })

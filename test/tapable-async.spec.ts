@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-import {expect, test} from 'vitest'
+import {expect, test, vi} from 'vitest'
 import {createAsyncHook} from '../src'
 
 test('tapable async hook - no options', async () => {
@@ -63,6 +63,10 @@ test('tapable async hook - context', async () => {
 })
 
 test('tapable async hook - error', async () => {
+  // This tap deliberately calls back with an error, and the default onError is 'log' -- so the
+  // library correctly prints it. Suppress it here and assert it happened, rather than letting a
+  // provoked exception scroll past in every test run.
+  const spyLog = vi.spyOn(console, 'error').mockImplementation(() => {})
   const hook = createAsyncHook<(message:string) => string>({type: 'waterfall'})
 
   hook.tapAsync((message, callback) => {
@@ -75,4 +79,6 @@ test('tapable async hook - error', async () => {
 
   const val = await hook.call('')
   expect(val).to.equal('2')
+  expect(spyLog).toHaveBeenCalled()
+  spyLog.mockRestore()
 })

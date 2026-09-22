@@ -12,7 +12,7 @@ import {createAsyncHook, createSyncHook} from '../src'
 import {asyncWait} from './async-wait'
 
 it('accept context - async', async function () {
-  const hook = createAsyncHook<[message: string], {
+  const hook = createAsyncHook<[message: string], any, {
     value: string
   }>({
     args: ["message"],
@@ -43,7 +43,7 @@ it('accept context - async', async function () {
 })
 
 it('accept context - sync', function () {
-  const hook = createSyncHook<[message: string], {
+  const hook = createSyncHook<[message: string], any, {
     value: string
   }>()
   let _context, _message
@@ -69,7 +69,7 @@ it('accept context - sync', function () {
 })
 
 it('provide context - sync', function () {
-  const hook = createSyncHook<[message: string], {
+  const hook = createSyncHook<[message: string], any, {
     value: string
   }>()
 
@@ -91,7 +91,7 @@ it('provide context - sync', function () {
 })
 
 it('provide context - async', async function () {
-  const hook = createAsyncHook<[message: string], {
+  const hook = createAsyncHook<[message: string], any, {
     value: string
   }>()
 

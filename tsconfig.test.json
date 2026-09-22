@@ -1,0 +1,28 @@
+{
+  // Typechecks the TESTS, which nothing did before 0.2.0.
+  //
+  // `test/other/typed-hooks.spec.ts` and `typed-hooks-call-return.spec.ts` are TYPE-LEVEL tests:
+  // they carry no runtime assertions because what they assert is that TypeScript accepts the code
+  // and infers the right parameter types. Vitest strips types without checking them, so those nine
+  // tests asserted nothing whatsoever. Verified by injecting `hook.call(12345, 'not-a-boolean')`
+  // into a `<[string, boolean]>` hook: the suite stayed green at 83 passed.
+  //
+  // tsconfig.build.json includes `src` only, which is correct for emitting declarations. This adds
+  // `test` and emits nothing.
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "emitDeclarationOnly": false,
+    "rootDir": ".",
+    // The enclosing monorepo has its own @types/chai, which collides with the copy vitest
+    // bundles: 39 duplicate-identifier errors from dependencies, none of them in this package.
+    "skipLibCheck": true,
+    // The build config sets no `module`, which is fine when only emitting declarations. The tests
+    // use `import.meta.url` and dynamic import, so they need a modern module target.
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "target": "es2022"
+  },
+  "include": ["src", "test"]
+}

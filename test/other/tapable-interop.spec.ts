@@ -64,7 +64,7 @@ async function testHook(hook: ITapableHook) {
       break
     }
     case "bail": {
-      let spy: Mock<any, any>
+      let spy: Mock<any>
       if (hook.getInfo().isAsync) {
         expect(hook.call).to.be.undefined
         spy = vi.fn().mockResolvedValue("Goodbye")

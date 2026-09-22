@@ -25,8 +25,11 @@ test('distribution - ES6', async () => {
 })
 
 test('distribution - CJS', async () => {
+  // The UMD bundle has no declarations of its own, so this import is untyped and the call
+  // cannot take type arguments. That is the point of the test: it exercises the CJS artifact
+  // as a plain consumer would, not as a typed one.
   const {createSyncHook} = await import ('../../dist/index.umd.cjs')
-  const hook = createSyncHook<[string]>()
+  const hook = createSyncHook()
   const spy = vi.fn()
   hook.tap(spy)
   hook.call("1")
@@ -37,7 +40,16 @@ test('distribution - CJS', async () => {
 })
 
 test('example', async () => {
-  await import ('../../samples/example.cjs')
+  // Run it with PLAIN NODE, not through `import`. Vitest transforms the file through vite, which
+  // supports top-level await — so an `await import(...)` of this sample passed for years while
+  // `node samples/example.cjs` threw a SyntaxError, and 0.1.2 shipped it broken. The test
+  // environment was not the user's environment, so the test could not see the defect it covered.
+  const {execFileSync} = await import('node:child_process')
+  const {fileURLToPath} = await import('node:url')
+  const sample = fileURLToPath(new URL('../../samples/example.cjs', import.meta.url))
+  const out = execFileSync(process.execPath, [sample], {encoding: 'utf8', stdio: 'pipe'})
+  expect(out).toContain('Sync Message: Hello')
+  expect(out).toContain('Hello+1+2+3')
 })
 
 suite('Tapable interop', () => {

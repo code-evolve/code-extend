@@ -11,7 +11,7 @@ import {expect, test, vi} from 'vitest'
 import {createAsyncHook, createSyncHook} from '../src'
 
 test('sync hook', () => {
-  const syncHook = createSyncHook<[string | number], void, string>()
+  const syncHook = createSyncHook<[string | number], string>()
 
   const spy1 = vi.fn()
   syncHook.tap({data: 'string'}, spy1)
@@ -40,7 +40,7 @@ test('sync hook', () => {
 })
 
 test('async hook', async () => {
-  const asyncHook = createAsyncHook<[string|number], void, string>({onError: 'throw'})
+  const asyncHook = createAsyncHook<[string|number], string>({onError: 'throw'})
 
   const spy1 = vi.fn()
   spy1.mockResolvedValue(() => undefined)
