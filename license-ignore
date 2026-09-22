@@ -2,3 +2,6 @@
 !/src
 !/dist
 !/test
+# Sourcemaps are JSON, not source. Prepending the licence comment to them makes them invalid
+# JSON, so every debugger silently falls back to the mangled bundle.
+/dist/**/*.map
