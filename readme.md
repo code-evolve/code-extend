@@ -332,12 +332,26 @@ Each hook is called in parallel.
 Return values are ignored.
 
 ### waterfall
-Each hook is called in series, 
+Each hook is called in series,
 receiving the value that the previous hook returned.
-`hook.call` will resolve after all tap 
-with the final returned value,
-after all taps resolve or reject.
+`hook.call` returns the final value,
+after all taps have resolved or rejected.
 This hook is essentially a `pipeline`.
+
+**A hook that returns `undefined` passes the value through unchanged.**
+Contributing nothing is not the same as contributing nothing *useful*,
+so a hook that declines to alter the value does not destroy it.
+
+```ts
+const hook = createSyncHook<(a: string) => string | void>({type: 'waterfall'})
+hook.tap(v => v + '-a')
+hook.tap(() => { /* declines */ })
+hook.tap(v => v + '-c')
+hook.call('start') // 'start-a-c'
+```
+
+> Before 0.2.0 the value was overwritten unconditionally, so the example above produced the literal
+> string `'undefined-c'`. One declining hook corrupted every value after it, silently.
 
 ### bail
 Each hook is called in series.
@@ -398,7 +412,7 @@ If you are familiar with Tapable, you might find this section of interest.
 * The `name` parameter is optional when calling `hook.tap`.
 * Initial `context` can be supplied to the `hook.call`.
 * There are only 2 types of hooks: SyncHook and AsyncHook.
-  All other types are specified using options (parallel, series, waterfall, bail, loop).
+  All other types are specified using options (parallel, series, waterfall, bail, race, loop).
 * Options include controlling how exceptions in callbacks are handled.
 * Composable functions are used internally, instead of classes.
 * Code generated is 1/10 to 1/7 the size of `Tapable`, for a .02% performance hit.
@@ -423,6 +437,13 @@ with the `Tapable` API.  This library uses ES6 proxies to embed our
 composable architecture inside class instances.
 We have tested this library against the `Tapable` unit tests.
 
+The hooks provided are
+`SyncHook`, `SyncWaterfallHook`, `SyncLoopHook`, `SyncBailHook`,
+`AsyncSeriesHook`, `AsyncParallelHook`, `AsyncSeriesWaterfallHook`,
+`AsyncSeriesLoopHook`, `AsyncSeriesBailHook` and `AsyncParallelBailHook`.
+
+> `AsyncParallelBailHook` was added in 0.2.0, alongside the `race` topology it maps to.
+
 ```ts
 import {Interop} from 'code-extend'
 // Now use Interop as if it was 'tapable'
@@ -433,15 +454,23 @@ const {SyncHook} = Interop
 
 const hook = new SyncHook(['message'])
 hook.tap('hook1', message => { console.log(message) })
+hook.call('Hello')
 
 // Notice async hooks do not have `tap` or `call` methods
-// in the `Tapable` API
+// in the `Tapable` API: you tap with `tapPromise` or `tapAsync`,
+// and you call with `promise` or `callAsync`.
 
+const {AsyncSeriesHook} = Interop
 const hook2 = new AsyncSeriesHook(['message'])
-await hook2.promise('hook1', message => { console.log(message) })
-hook2.callAsync('hook1', (message, done) => { console.log(message); done() })
-// This will not work
-// await hook2.call('hook1', message => { console.log(message) })
+
+hook2.tapPromise('hook1', async message => { console.log(message) })
+await hook2.promise('Hello')
+
+hook2.tapAsync('hook2', (message, done) => { console.log(message); done() })
+hook2.callAsync('Hello', () => { console.log('every tap finished') })
+
+// This will not work — async hooks have no `call` in the `Tapable` API
+// hook2.call('Hello')
 ```
 
 # Developer

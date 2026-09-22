@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 */
 import {expect, it} from 'vitest'
 import {createAsyncHook, createSyncHook} from '../src'
-import {asyncWait} from '@util-js'
+import {asyncWait} from './async-wait'
 
 it('accept context - async', async function () {
   const hook = createAsyncHook<[message: string], {

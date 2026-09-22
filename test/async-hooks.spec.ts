@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
 import {it, expect} from 'vitest'
 import {createAsyncHook} from '../src'
-import {asyncWait} from '@util-js'
+import {asyncWait} from './async-wait'
 
 it('series', async function () {
   const hook = createAsyncHook<() => number, void>({type: 'series'})
@@ -157,8 +157,13 @@ it('waterfall reverse', async function () {
   expect(processed).to.equal('021')
 })
 
-it('bail', async function () {
-  const hook = createAsyncHook<() => number, void>({type: 'bail'})
+// Renamed from 'bail' in 0.2.0, unchanged otherwise. It asserts that the FASTEST tap wins
+// (tap 2 waits 5ms against tap 1's 10ms), which is the racing behaviour the async `bail` used to
+// have. That behaviour was not removed, it was named: it is `race`, and it matches tapable's
+// AsyncParallelBailHook. Before 0.2.0 this file could not be loaded -- it imported `@util-js`,
+// declared nowhere -- so these assertions had never run.
+it('race', async function () {
+  const hook = createAsyncHook<() => number, void>({type: 'race'})
   const results = []
 
   hook.tap(async () => {
@@ -178,9 +183,9 @@ it('bail', async function () {
   expect(results).to.eql(['2'])
 })
 
-it('bail reverse', async function () {
+it('race reverse', async function () {
   const hook = createAsyncHook<() => number, void>({
-    type: 'bail',
+    type: 'race',
     reverse: true
   })
   const results = []
@@ -202,8 +207,9 @@ it('bail reverse', async function () {
   expect(results).to.eql(['2'])
 })
 
-it('bail no result', async function () {
-  const hook = createAsyncHook<() => void, void>({type: 'bail'})
+// Also renamed: it asserts completion ORDER ['2','1'], i.e. taps running concurrently.
+it('race no result', async function () {
+  const hook = createAsyncHook<() => void, void>({type: 'race'})
   const results = []
 
   hook.tap(async () => {
@@ -271,4 +277,39 @@ it('loop reverse', async function () {
   const result = await hook.call()
   expect(result).to.be.undefined
   expect(results).to.eql(['2', '1', '2', '1'])
+})
+
+// --- async `bail` is SERIES, matching the sync bail, the readme, and tapable ---------------
+// Measured against tapable 2.3.3: AsyncSeriesBailHook calls ONE tap of two that both answer and
+// returns its value; AsyncParallelBailHook calls two. Until 0.2.0 the async bail did the latter.
+
+it('bail runs in series and returns the first answer, not the fastest', async function () {
+  const hook = createAsyncHook<() => string | void, void>({type: 'bail'})
+  const results = []
+
+  hook.tap(async () => {
+    await asyncWait(10)   // SLOWER, but first in order
+    results.push('1')
+    return 'first'
+  })
+
+  hook.tap(async () => {
+    await asyncWait(1)
+    results.push('2')
+    return 'second'
+  })
+
+  expect(await hook.call()).to.equal('first')
+  expect(results).to.eql(['1'])   // the second tap never runs
+})
+
+it('bail returns undefined when no tap answers, having run them all in order', async function () {
+  const hook = createAsyncHook<() => string | void, void>({type: 'bail'})
+  const results = []
+
+  hook.tap(async () => { await asyncWait(10); results.push('1') })
+  hook.tap(async () => { await asyncWait(1); results.push('2') })
+
+  expect(await hook.call()).to.be.undefined
+  expect(results).to.eql(['1', '2'])   // series order, not completion order
 })
