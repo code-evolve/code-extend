@@ -9,7 +9,12 @@ syncHook.call('Hello')
 
 const asyncHook = createAsyncHook() // series by default
 asyncHook.tap(async message => console.log(`Async Message: ${message}`))
-await asyncHook.call('Hello').catch(e => console.error(e))
+// A `.cjs` file has no top-level await, so the async call is awaited inside a wrapper.
+// Without this the whole sample fails to parse — `node samples/example.cjs` threw
+// "await is only valid in async functions", including in the published 0.1.2.
+void (async () => {
+  await asyncHook.call('Hello').catch(e => console.error(e))
+})()
 
 const waterfallHook = createSyncHook({ type: 'waterfall' })
 waterfallHook.tap(value => value + '+1')

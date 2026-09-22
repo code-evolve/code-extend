@@ -389,7 +389,17 @@ export function createAsyncHook<PARAMS extends FnInfo, TAPDATA = any, CONTEXT = 
         try {
           return await Promise.any(promises)
         } catch (e) {
-          handleException(onError, e)
+          // `Promise.any` rejects with an AggregateError once every tap has rejected -- and a tap
+          // that simply returned `undefined` is rejected internally with the 'not handled'
+          // sentinel. So "nobody answered", which is a NORMAL outcome, arrived here as an error
+          // and was logged. `bail` returns undefined silently in exactly that case; `race` now
+          // agrees. A real exception in a tap is still reported.
+          const errors = (e as AggregateError)?.errors
+          const everyTapDeclined = Array.isArray(errors) && errors.length > 0 &&
+            errors.every((inner: any) => inner?.message === 'not handled')
+          if (!everyTapDeclined) {
+            handleException(onError, e)
+          }
           return undefined as any
         }
       }
