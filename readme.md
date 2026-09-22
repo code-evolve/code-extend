@@ -428,8 +428,8 @@ If you are familiar with Tapable, you might find this section of interest.
 | sync                | yes         | Recommended to use `tap` instead                     |
 | context             | yes         | Can be provided in `hook.call`                       |
 | Interception        | yes         | `tap`, `untap`, `register`, and `loop`               |
-| HookMap             | yes         | We recommend using `call2({filter})` instead         |
-| Multihook           | yes         | Please check for issues when using `withOptions` API |
+| HookMap             | not exported | In `src`, but not exported from the entry point — use `call2({filter})` |
+| Multihook           | not exported | In `src`, but not exported from the entry point      |
 
 ### Tapable Interop
 We have included an interop library that allows using `Code-Extend`
