@@ -342,9 +342,29 @@ This hook is essentially a `pipeline`.
 ### bail
 Each hook is called in series.
 Once one hook returns a value other than `undefined`,
-`hook.call` will return that value.
-Any remaining hooks will not be called.
-Any pending async hooks will be discarded.
+any remaining hooks will not be called
+and `call` returns that value.
+
+If no hook returns a value, `call` returns `undefined`,
+so *answered* and *declined* stay distinguishable.
+
+This matches tapable's `SyncBailHook` and `AsyncSeriesBailHook`.
+
+### race
+Every hook is started at once.
+The first to **resolve** wins, and the remaining hooks are abandoned.
+
+Use `race` when the taps are independent lookups
+and the fastest answer is as good as any other;
+use `bail` when their **order** is the point.
+
+This matches tapable's `AsyncParallelBailHook`.
+For a sync hook there is no concurrency to race,
+so `race` behaves exactly as `bail`.
+
+> Added in 0.2.0. The async `bail` previously raced its taps, which is this behaviour under the
+> wrong name — it matched `AsyncParallelBailHook` while being called `AsyncSeriesBailHook`. The two
+> are now named separately, so `bail` means the same thing in both APIs.
 
 ### loop
 Each hook is called in series.

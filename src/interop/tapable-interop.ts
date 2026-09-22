@@ -236,6 +236,24 @@ export class AsyncSeriesBailHook<PARAMS extends FnInfo = any, TAPDATA = any, CON
   }
 }
 
+/**
+ * Tapable's parallel bail: every tap starts, the first to produce a value wins, the rest are
+ * abandoned.
+ *
+ * **Added in 0.2.0, when the behaviour turned out to already exist under the wrong name.** The
+ * async `bail` used to run `Promise.any` over all taps, which is precisely this hook — so for
+ * `AsyncSeriesBailHook` it was the wrong semantics, and for `AsyncParallelBailHook` it was the right
+ * ones with nothing exposing them. Measured against tapable 2.3.3 with two taps that both answer:
+ * `AsyncSeriesBailHook` calls **1**, `AsyncParallelBailHook` calls **2**, and both return the value.
+ * `bail` now matches the first and `race` matches the second.
+ */
+export class AsyncParallelBailHook<PARAMS extends FnInfo = any, TAPDATA = any, CONTEXT = any> extends AsyncDummy<PARAMS, TAPDATA, CONTEXT, 'race'> {
+  constructor(args: string[] = [], name?: string) {
+    super()
+    return createAsyncProxy<PARAMS, TAPDATA, CONTEXT, 'race'>(this, args, name, 'race')
+  }
+}
+
 function createSyncProxy<PARAMS extends FnInfo, TAPDATA, CONTEXT, HOOKTYPE extends HookType | undefined>(that: any, hookArgs: string[], name: string | undefined, type: HOOKTYPE) {
   const hook = createSyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE>({
     name,

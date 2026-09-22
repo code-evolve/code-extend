@@ -1,3 +1,19 @@
+# 0.2.0
+
+- breaking: `bail` now runs in **series** for async hooks, matching the sync `bail`, the readme, and
+  tapable's `AsyncSeriesBailHook`. It previously raced every tap through `Promise.any`
+- feat: add the `race` topology — every tap starts, the first to resolve wins. This is the behaviour
+  the async `bail` used to have, and it matches tapable's `AsyncParallelBailHook`
+- feat: expose `Interop.AsyncParallelBailHook`, which had no equivalent before
+- fix: `bail` returns the value that caused it to bail. It short-circuited correctly but discarded
+  the value, so `call` answered `undefined` whether a tap answered or none did
+- fix: `waterfall` passes the accumulated value through a tap that returns nothing, matching tapable.
+  A silent tap previously handed the literal `undefined` to the next tap
+- fix: `vite build` completes. `rollupTypes` aborted it on "Unable to follow symbol for Partial",
+  before the UMD pass, so `dist/index.umd.cjs` was never emitted
+- test: three tests asserted the old behaviour rather than the contract; corrected, with notes.
+  Verified against tapable 2.3.3 directly
+
 # 0.1.1
 
 - task: Upgrade dependencies

@@ -149,6 +149,11 @@ export function createSyncHook<PARAMS extends FnInfo, TAPDATA = any, CONTEXT = v
         }
         return value
       }
+      // A SYNC `race` has no concurrency to race: taps run one after another, so "first to finish"
+      // and "first to answer" are the same event. It therefore behaves exactly as `bail` rather
+      // than being rejected, so a hook type can be chosen for what it MEANS and still work if the
+      // hook is later made sync.
+      case 'race':
       case 'bail': {
         for (const info of items) {
           try {
@@ -357,6 +362,27 @@ export function createAsyncHook<PARAMS extends FnInfo, TAPDATA = any, CONTEXT = 
         return value
       }
       case 'bail': {
+        // SERIES, matching the sync `bail` and the readme. Before 0.2.0 this fired every tap
+        // through `Promise.any` and returned whichever resolved FIRST, so one name meant two
+        // different things depending on which API you reached for, and the documented behaviour was
+        // only ever true of the sync side. The racing behaviour was real and useful, so it was not
+        // deleted -- it moved to `race` below.
+        for (const info of items) {
+          try {
+            const result = await info.fn.apply(undefined, generateParams(info, context, args))
+            if (result !== undefined) {
+              return result as any
+            }
+          } catch (e: any) {
+            handleException(onError, e)
+          }
+        }
+        return undefined as any
+      }
+      case 'race': {
+        // First to RESOLVE wins, and the rest are abandoned -- what the async `bail` used to do.
+        // Use this when the taps are independent lookups and the fastest answer is as good as any
+        // other; use `bail` when their ORDER is the point.
         const promises = items.map(async info => {
           return wrappedPromise(info.fn.apply(undefined, generateParams(info, context, args)), onError)
         })

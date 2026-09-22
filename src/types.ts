@@ -31,7 +31,7 @@ export type CallType<T extends FnInfo> =
   T extends (...args: infer X) => any ? X : T
 
 /**
- * For waterfall and bail hooks, when the tuple style is used, the return type is `any`.
+ * For waterfall, bail and race hooks, when the tuple style is used, the return type is `any`.
  * Otherwise, it is the provided function's return type,
  * or any if no information was provided.
  * For all other hooks, the return type is void.
@@ -39,19 +39,19 @@ export type CallType<T extends FnInfo> =
 export type CallReturnType<PARAMS extends FnInfo, HOOKTYPE extends HookType | undefined> =
   HOOKTYPE extends undefined
     ? (PARAMS extends (...args: any[]) => infer D ? D : any) | void
-    : HOOKTYPE extends 'waterfall' | 'bail'
+    : HOOKTYPE extends 'waterfall' | 'bail' | 'race'
       ? PARAMS extends (...args: any[]) => infer D ? D : any
       : void
 
 
 /**
  * When the tuple style is used, the return type is `any`.
- * For waterfall and bail hooks, the return type is always any (or a fn style return value)
+ * For waterfall, bail and race hooks, the return type is always any (or a fn style return value)
  * For loop hooks, the return type is always any.
  * For all other hooks, the return type is void.
  */
 export type HookReturnType<T extends FnInfo, HOOKTYPE extends HookType | undefined> =
-  HOOKTYPE extends 'waterfall' | 'bail'
+  HOOKTYPE extends 'waterfall' | 'bail' | 'race'
     ? T extends (...args: any[]) => infer D ? D : any
     : HookType extends 'loop'
       ? any
@@ -281,7 +281,16 @@ export type HookErrorAction = 'log' | 'throw' | 'ignore'
 /**
  * `SyncHook` treats `series` and `parallel` the same.
  */
-export type HookType = 'parallel' | 'series' | 'waterfall' | 'bail' | 'loop'
+/**
+ * `race` was split out of `bail` in 0.2.0.
+ *
+ * The two had been one name meaning two things: the sync `bail` ran taps in series and stopped at
+ * the first answer, while the async `bail` fired every tap through `Promise.any` and returned
+ * whichever RESOLVED FIRST — and only the series behaviour was documented. Both are useful; neither
+ * is wrong. They are now named separately, so `bail` means the same thing in both APIs and the
+ * readme is true of the code.
+ */
+export type HookType = 'parallel' | 'series' | 'waterfall' | 'bail' | 'race' | 'loop'
 
 export interface IHookMap<T extends Hook> {
   /**
