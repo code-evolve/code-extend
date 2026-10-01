@@ -1,3 +1,17 @@
+# 0.2.1
+
+- fix: ship `dist/multihook.d.ts`. `dist/interop/tapable-interop.d.ts` re-exports `MultiHook` from
+  `../multihook`, and 0.2.0 excluded that declaration from the build, so a consumer typechecking
+  without `skipLibCheck` got `TS2307: Cannot find module '../multihook'`. The runtime was never
+  affected: `Interop.MultiHook` has been in the bundle throughout
+- test: every relative import in a shipped declaration must resolve to a shipped file
+- docs: the readme said `Multihook` is not exported. It is, as `Interop.MultiHook`
+- docs: say what declines. Only `undefined` does: `bail` treats `null` as an answer, and
+  `waterfall` treats `null` and `''` as values
+- task: the author and copyright holder are Steven Spungin, in `package.json`, `license.txt` and
+  the licence header of every shipped file. The `twelvetone` keyword is removed. The licence is
+  still MIT
+
 # 0.2.0
 
 - breaking: `bail` now runs in **series** for async hooks, matching the sync `bail`, the readme, and
