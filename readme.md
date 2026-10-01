@@ -341,6 +341,7 @@ This hook is essentially a `pipeline`.
 **A hook that returns `undefined` passes the value through unchanged.**
 Contributing nothing is not the same as contributing nothing *useful*,
 so a hook that declines to alter the value does not destroy it.
+Only `undefined` declines: `null` and `''` are real values and replace the accumulated one.
 
 ```ts
 const hook = createSyncHook<(a: string) => string | void>({type: 'waterfall'})
@@ -361,6 +362,7 @@ and `call` returns that value.
 
 If no hook returns a value, `call` returns `undefined`,
 so *answered* and *declined* stay distinguishable.
+Only `undefined` declines. `null` is an answer, so a tap returning `null` stops the hook.
 
 This matches tapable's `SyncBailHook` and `AsyncSeriesBailHook`.
 
@@ -429,7 +431,7 @@ If you are familiar with Tapable, you might find this section of interest.
 | context             | yes         | Can be provided in `hook.call`                       |
 | Interception        | yes         | `tap`, `untap`, `register`, and `loop`               |
 | HookMap             | not exported | In `src`, but not exported from the entry point — use `call2({filter})` |
-| Multihook           | not exported | In `src`, but not exported from the entry point      |
+| Multihook           | yes         | As `Interop.MultiHook`                               |
 
 ### Tapable Interop
 We have included an interop library that allows using `Code-Extend`
