@@ -12,7 +12,6 @@
     "tapable",
     "hook",
     "code-evolve",
-    "twelvetone",
     "extend",
     "codeextend"
   ],
@@ -57,6 +56,6 @@
   ],
   "runkitExampleFilename": "samples/example.cjs",
   "license": "MIT",
-  "author": "TwelveTone LLC",
+  "author": "Steven Spungin",
   "packageManager": "yarn@4.2.2"
 }
