@@ -25,11 +25,15 @@ export default defineConfig({
       // a build that completes is worth more.
       rollupTypes: false,
       // Declarations are emitted per file, so every module in `src` produces one — including
-      // `hookmap` and `multihook`, which `index.ts` does NOT export and whose code is therefore
-      // absent from the bundle. Shipping their .d.ts would advertise an API with no runtime behind
-      // it: a consumer sees the types, imports them, and finds nothing. 0.1.2 shipped neither,
-      // because the rolled-up build only ever emitted what the entry point reached.
-      exclude: ['src/hookmap.ts', 'src/multihook.ts'],
+      // `hookmap`, which nothing reachable from `index.ts` imports and whose code is therefore
+      // absent from the bundle. Shipping its .d.ts would advertise an API with no runtime behind
+      // it: a consumer sees the types, imports them, and finds nothing.
+      //
+      // `multihook` is NOT excluded, and was until 0.2.1. `interop/tapable-interop.ts` re-exports
+      // `MultiHook`, so it is in the bundle as `Interop.MultiHook`, and the emitted
+      // `interop/tapable-interop.d.ts` imports `../multihook`. Excluding it shipped a declaration
+      // pointing at a file that was not there: TS2307 for any consumer without `skipLibCheck`.
+      exclude: ['src/hookmap.ts'],
     })
   ]
 

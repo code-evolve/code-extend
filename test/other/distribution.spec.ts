@@ -74,3 +74,27 @@ suite('Tapable interop', () => {
     expect(spy).toHaveBeenNthCalledWith(2,"2")
   })
 })
+
+test('distribution - every relative import in a shipped declaration resolves', async () => {
+  // 0.2.0 shipped `dist/interop/tapable-interop.d.ts` re-exporting from `../multihook` while the
+  // build excluded `multihook.d.ts`. Nothing here caught it: the tests import from `src`, where
+  // the file exists, so only a consumer typechecking the installed package could see it.
+  const {readdirSync, readFileSync, existsSync} = await import('node:fs')
+  const {dirname, join, resolve} = await import('node:path')
+  const {fileURLToPath} = await import('node:url')
+  const dist = fileURLToPath(new URL('../../dist', import.meta.url))
+  const declarations = (readdirSync(dist, {recursive: true}) as string[])
+    .filter(file => file.endsWith('.d.ts'))
+  expect(declarations.length).toBeGreaterThan(0)
+  const unresolved: string[] = []
+  for (const file of declarations) {
+    const text = readFileSync(join(dist, file), 'utf8')
+    for (const match of text.matchAll(/\bfrom\s+['"](\.[^'"]*)['"]/g)) {
+      const target = resolve(dirname(join(dist, file)), match[1])
+      if (!existsSync(target + '.d.ts') && !existsSync(join(target, 'index.d.ts'))) {
+        unresolved.push(`${file} -> ${match[1]}`)
+      }
+    }
+  }
+  expect(unresolved).toEqual([])
+})
