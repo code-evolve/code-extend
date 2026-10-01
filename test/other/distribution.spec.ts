@@ -75,7 +75,7 @@ suite('Tapable interop', () => {
   })
 })
 
-test('distribution - every relative import in a shipped declaration resolves', async () => {
+test('distribution - every relative import in a shipped declaration has an extension and resolves', async () => {
   // 0.2.0 shipped `dist/interop/tapable-interop.d.ts` re-exporting from `../multihook` while the
   // build excluded `multihook.d.ts`. Nothing here caught it: the tests import from `src`, where
   // the file exists, so only a consumer typechecking the installed package could see it.
@@ -90,8 +90,11 @@ test('distribution - every relative import in a shipped declaration resolves', a
   for (const file of declarations) {
     const text = readFileSync(join(dist, file), 'utf8')
     for (const match of text.matchAll(/\bfrom\s+['"](\.[^'"]*)['"]/g)) {
-      const target = resolve(dirname(join(dist, file)), match[1])
-      if (!existsSync(target + '.d.ts') && !existsSync(join(target, 'index.d.ts'))) {
+      // The specifier must carry `.js`: under TypeScript's `nodenext` resolution a relative
+      // import in an ES module declaration without an extension is TS2834, and the entry point
+      // then exports nothing. 0.2.0 shipped them without.
+      const target = resolve(dirname(join(dist, file)), match[1].replace(/\.js$/, ''))
+      if (!match[1].endsWith('.js') || !existsSync(target + '.d.ts')) {
         unresolved.push(`${file} -> ${match[1]}`)
       }
     }

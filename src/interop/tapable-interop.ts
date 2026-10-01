@@ -26,10 +26,10 @@ import {
   HookInfo,
   TapOptionsPromise,
   HookCallbackPromise
-} from '../types'
+} from '../types.js'
 
-export {MultiHook} from '../multihook'
-import {createAsyncHook, createSyncHook} from '../hooks'
+export {MultiHook} from '../multihook.js'
+import {createAsyncHook, createSyncHook} from '../hooks.js'
 
 type AsyncCallback<E = unknown, T = any> = (err?: E, result?: T) => void
 

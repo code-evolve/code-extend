@@ -25,9 +25,9 @@ import {
   TapInfo, HookInfo,
   HookCallbackPromise,
   TapOptionsPromise
-} from './types'
-import {generateParams, handleException, parseParams} from './util'
-import {removeOne} from './array'
+} from './types.js'
+import {generateParams, handleException, parseParams} from './util.js'
+import {removeOne} from './array.js'
 
 export function createSyncHook<PARAMS extends FnInfo, TAPDATA = any, CONTEXT = void, HOOKTYPE extends HookType | undefined = undefined>
 (opts?: CreateHookOptions): SyncHook<PARAMS, TAPDATA, CONTEXT, HOOKTYPE> {

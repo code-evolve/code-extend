@@ -4,7 +4,12 @@
   `../multihook`, and 0.2.0 excluded that declaration from the build, so a consumer typechecking
   without `skipLibCheck` got `TS2307: Cannot find module '../multihook'`. The runtime was never
   affected: `Interop.MultiHook` has been in the bundle throughout
-- test: every relative import in a shipped declaration must resolve to a shipped file
+- fix: the declarations typecheck under TypeScript's `nodenext` resolution. Relative imports in
+  `src` had no file extension, so every shipped `.d.ts` failed with TS2834 and the entry point
+  exported nothing to a `nodenext` consumer. 0.1.2 was unaffected because its declarations were
+  rolled into one file; 0.2.0 introduced it
+- test: every relative import in a shipped declaration must carry an extension and resolve to a
+  shipped file
 - docs: the readme said `Multihook` is not exported. It is, as `Interop.MultiHook`
 - docs: say what declines. Only `undefined` does: `bail` treats `null` as an answer, and
   `waterfall` treats `null` and `''` as values
