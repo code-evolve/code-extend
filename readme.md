@@ -379,7 +379,7 @@ For a sync hook there is no concurrency to race,
 so `race` behaves exactly as `bail`.
 
 > Added in 0.2.0. The async `bail` previously raced its taps, which is this behaviour under the
-> wrong name — it matched `AsyncParallelBailHook` while being called `AsyncSeriesBailHook`. The two
+> wrong name: it matched `AsyncParallelBailHook` while being called `AsyncSeriesBailHook`. The two
 > are now named separately, so `bail` means the same thing in both APIs.
 
 ### loop
@@ -430,7 +430,7 @@ If you are familiar with Tapable, you might find this section of interest.
 | sync                | yes         | Recommended to use `tap` instead                     |
 | context             | yes         | Can be provided in `hook.call`                       |
 | Interception        | yes         | `tap`, `untap`, `register`, and `loop`               |
-| HookMap             | not exported | In `src`, but not exported from the entry point — use `call2({filter})` |
+| HookMap             | not exported | In `src`, but not exported from the entry point; use `call2({filter})` |
 | Multihook           | yes         | As `Interop.MultiHook`                               |
 
 ### Tapable Interop
@@ -471,7 +471,7 @@ await hook2.promise('Hello')
 hook2.tapAsync('hook2', (message, done) => { console.log(message); done() })
 hook2.callAsync('Hello', () => { console.log('every tap finished') })
 
-// This will not work — async hooks have no `call` in the `Tapable` API
+// This will not work: async hooks have no `call` in the `Tapable` API
 // hook2.call('Hello')
 ```
 

@@ -21,7 +21,7 @@
 
 - breaking: `bail` now runs in **series** for async hooks, matching the sync `bail`, the readme, and
   tapable's `AsyncSeriesBailHook`. It previously raced every tap through `Promise.any`
-- feat: add the `race` topology — every tap starts, the first to resolve wins. This is the behaviour
+- feat: add the `race` topology: every tap starts, the first to resolve wins. This is the behaviour
   the async `bail` used to have, and it matches tapable's `AsyncParallelBailHook`
 - feat: expose `Interop.AsyncParallelBailHook`, which had no equivalent before
 - fix: `bail` returns the value that caused it to bail. It short-circuited correctly but discarded
@@ -33,25 +33,25 @@
 - test: three tests asserted the old behaviour rather than the contract; corrected, with notes.
   Verified against tapable 2.3.3 directly
 - fix: `race` no longer logs an error when no tap answers. `Promise.any` rejects once every tap has
-  rejected, and a tap returning `undefined` is rejected internally — so the normal "nobody answered"
+  rejected, and a tap returning `undefined` is rejected internally, so the normal "nobody answered"
   outcome arrived as an AggregateError and was logged. A real exception in a tap is still reported
 - fix: the type documentation had the second and third template parameters the wrong way round. The
   signature is PARAMS, TAPDATA, CONTEXT; the comment said context was second, and `context.spec.ts`
   was written from the comment. Nothing caught it because the tests were never typechecked
 - task: bump vite to ^5.4.21 and vitest to ^1.6.1 within their majors, clearing 13 of 17 advisories
-  including one critical. Both are devDependencies — this package has no runtime dependencies at all,
+  including one critical. Both are devDependencies; this package has no runtime dependencies at all,
   so none of them ever reached a consumer. The remaining four need vite 6.4.2+ and vitest 3.2.6+
 - task: tests no longer print. Four `vi.spyOn(console, 'error')` calls recorded the call but had no
   mock implementation, so they called through and every deliberately provoked exception was printed
 - fix: `samples/example.cjs` runs. It had top-level `await` in a CommonJS file, so
-  `node samples/example.cjs` threw a SyntaxError — including in the published 0.1.2. Its test had
+  `node samples/example.cjs` threw a SyntaxError, including in the published 0.1.2. Its test had
   imported the file through vitest, which transforms it and supports top-level await, so the test
   environment was not the user's and could not see the defect. The test now runs it under plain node
 - fix: stop shipping `dist/hookmap.d.ts` and `dist/multihook.d.ts`. Neither module is exported from
   the entry point and neither is in the bundle, so those declarations described an API with no
   runtime behind it. The readme's feature table now says so rather than claiming both are available
 - feat: ship `src`, `test` and sourcemaps. The library build mangles identifiers and strips comments, so
-  `dist/index.js` was unreadable — every function a single letter — and a consumer's stack trace
+  `dist/index.js` was unreadable (every function a single letter), and a consumer's stack trace
   pointed into it with no way back. There is nothing in this package worth withholding, and the
   cost is a tarball of 53 kB instead of 17 kB. The tests ship for the same reason: they are the
   evidence for what this package claims, including its conformance against tapable 2.3.3
