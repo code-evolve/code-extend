@@ -56,6 +56,14 @@
   ],
   "runkitExampleFilename": "samples/example.cjs",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/code-evolve/code-extend.git"
+  },
+  "homepage": "https://www.code-evolve.com/products/code-extend",
+  "bugs": {
+    "url": "https://github.com/code-evolve/code-extend/issues"
+  },
   "author": "Steven Spungin",
   "packageManager": "yarn@4.2.2"
 }
