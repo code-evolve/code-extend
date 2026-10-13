@@ -1,12 +1,20 @@
 # IntelliJ. Nothing under .idea/ is tracked anywhere in this repository, so it was
-# meant to be ignored and never was — it shows up as untracked noise on every status.
+# meant to be ignored and never was. It shows up as untracked noise on every status.
 .idea/
 
-# This project is Yarn PnP (packageManager: yarn@4.2.2) and has no node_modules by design.
-# One `npm install` here creates 180+ directories and a package-lock.json that fight the
-# committed .pnp.cjs. Ignoring node_modules stops the mess being committed; package-lock.json
-# is deliberately NOT ignored, so using the wrong package manager stays visible.
+# Yarn PnP, run through Corepack from the `packageManager` field. The install state and the
+# resolution maps are produced by `yarn install` and are not committed, because the cache they
+# point into is not committed either. A `node_modules` directory or a `package-lock.json` means
+# the wrong package manager was used; `package-lock.json` is left visible on purpose.
 node_modules/
+.pnp.cjs
+.pnp.loader.mjs
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
 
 # Build output, produced by `yarn build`.
 /dist
