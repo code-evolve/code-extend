@@ -41,7 +41,7 @@ test('distribution - CJS', async () => {
 
 test('example', async () => {
   // Run it with PLAIN NODE, not through `import`. Vitest transforms the file through vite, which
-  // supports top-level await — so an `await import(...)` of this sample passed for years while
+  // supports top-level await, so an `await import(...)` of this sample passed for years while
   // `node samples/example.cjs` threw a SyntaxError, and 0.1.2 shipped it broken. The test
   // environment was not the user's environment, so the test could not see the defect it covered.
   const {execFileSync} = await import('node:child_process')

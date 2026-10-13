@@ -24,7 +24,7 @@ export default defineConfig({
       // points at `dist/index.d.ts`, which re-exports them. One bundled .d.ts would be tidier;
       // a build that completes is worth more.
       rollupTypes: false,
-      // Declarations are emitted per file, so every module in `src` produces one — including
+      // Declarations are emitted per file, so every module in `src` produces one, including
       // `hookmap`, which nothing reachable from `index.ts` imports and whose code is therefore
       // absent from the bundle. Shipping its .d.ts would advertise an API with no runtime behind
       // it: a consumer sees the types, imports them, and finds nothing.

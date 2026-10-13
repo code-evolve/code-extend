@@ -111,7 +111,7 @@ it('bail reverse', function () {
   })
 
   const result = hook.call()
-  // Also asserted the defect — see the note on 'bail' above.
+  // Also asserted the defect; see the note on 'bail' above.
   expect(result).to.equal(true)
   expect(results).to.eql(['2'])
 })
@@ -178,7 +178,7 @@ it('bail returns the value that caused the bail', function () {
   expect(hook.call()).to.equal('answered')
 })
 
-it('bail returns undefined when nobody answers — declining stays distinguishable', function () {
+it('bail returns undefined when nobody answers, so declining stays distinguishable', function () {
   const hook = createSyncHook<() => string | void>({type: 'bail'})
   hook.tap(() => undefined)
   hook.tap(() => undefined)

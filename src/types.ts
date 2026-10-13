@@ -25,7 +25,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
  *   Hook<[string], any, {foo:string, bar: number}>()
  *
  *   These two were documented the other way round before 0.2.0, and `test/context.spec.ts` was
- *   written from the comment rather than the signature — so every context test passed a context
+ *   written from the comment rather than the signature, so every context test passed a context
  *   type into the tap-data slot and none of them typechecked. Nothing caught it because the tests
  *   were never typechecked at all. The signature is the authority: PARAMS, TAPDATA, CONTEXT.
  *   Hook<[string],  {foo:string, bar: number}, MyDataType>()
@@ -292,7 +292,7 @@ export type HookErrorAction = 'log' | 'throw' | 'ignore'
  *
  * The two had been one name meaning two things: the sync `bail` ran taps in series and stopped at
  * the first answer, while the async `bail` fired every tap through `Promise.any` and returned
- * whichever RESOLVED FIRST — and only the series behaviour was documented. Both are useful; neither
+ * whichever RESOLVED FIRST, and only the series behaviour was documented. Both are useful; neither
  * is wrong. They are now named separately, so `bail` means the same thing in both APIs and the
  * readme is true of the code.
  */

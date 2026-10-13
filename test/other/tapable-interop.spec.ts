@@ -79,7 +79,7 @@ async function testHook(hook: ITapableHook) {
         await hook.call("Hello")
       }
       // ONE tap, sync or async. This asserted 2 for the async case before 0.2.0, which was
-      // AsyncParallelBailHook's behaviour wearing AsyncSeriesBailHook's name — the test had been
+      // AsyncParallelBailHook's behaviour wearing AsyncSeriesBailHook's name. The test had been
       // written against the implementation rather than against tapable. Measured against tapable
       // 2.3.3: AsyncSeriesBailHook calls 1, SyncBailHook calls 1, AsyncParallelBailHook calls 2.
       expect(spy).toHaveBeenCalledTimes(1)

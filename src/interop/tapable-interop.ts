@@ -241,7 +241,7 @@ export class AsyncSeriesBailHook<PARAMS extends FnInfo = any, TAPDATA = any, CON
  * abandoned.
  *
  * **Added in 0.2.0, when the behaviour turned out to already exist under the wrong name.** The
- * async `bail` used to run `Promise.any` over all taps, which is precisely this hook — so for
+ * async `bail` used to run `Promise.any` over all taps, which is precisely this hook, so for
  * `AsyncSeriesBailHook` it was the wrong semantics, and for `AsyncParallelBailHook` it was the right
  * ones with nothing exposing them. Measured against tapable 2.3.3 with two taps that both answer:
  * `AsyncSeriesBailHook` calls **1**, `AsyncParallelBailHook` calls **2**, and both return the value.

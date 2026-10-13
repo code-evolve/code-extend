@@ -11,7 +11,7 @@ import {expect, test} from 'vitest'
 import {createAsyncHook, createSyncHook} from '../../src'
 
 // These transcribe the readme's examples. They used to `console.log` and assert NOTHING, so they
-// proved only that the documented code does not throw — never that it produces the documented
+// proved only that the documented code does not throw, never that it produces the documented
 // RESULT. That is how the readme's tapable-interop example survived for years while silently doing
 // nothing. Each test now records what the example would have printed and asserts it, and the
 // documented return values ('321' below) are checked rather than left in a comment.
