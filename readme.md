@@ -11,6 +11,8 @@ with compile-time type checking and code completion.
 This type safety includes all hooks, taps, calls, contexts,
 tap data, and interceptors.
 
+Source and issues: [github.com/code-evolve/code-extend](https://github.com/code-evolve/code-extend)
+
 # Usage Overview
 ## Installing
 ```shell
